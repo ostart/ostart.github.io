@@ -77,6 +77,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-snmpsim-docker" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/29/snmpsim-docker/" class="article-date">
+  <time class="dt-published" datetime="2021-06-29T10:11:12.000Z" itemprop="datePublished">29-06-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/29/snmpsim-docker/">SnmpSim. Запускаем в Docker</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>В предыдущем посте была рассмотрен <a href="https://ostart.github.io/2021/06/22/snmpsim/">запуск симулятора snmpsim в Windows</a>. Здесь же рассмотрим особенности запуска этого симулятора в Docker.</p>
+<p>Для запуска snmpsim в докере мы будем использовать образ python:3.7-slim-buster. Почему не Alpine можно узнать из <a target="_blank" rel="noopener" href="https://habr.com/ru/post/486202/">статьи на Хабре</a>. В целом алгоритм достаточно прост: установить из <strong>pip</strong> симулятор <em>snmpsim</em>, скопировать папку <strong>data</strong> (содержащую файл <em>public.snmprec</em>) и открыть <strong>161</strong> порт. </p>
+<p>И тут <strong>самое важное</strong>: требуется стартовать <strong>snmpsimd.py</strong> непременно из под <em>process-user</em> и <em>process-group</em> равными <strong>root</strong>.</p>
+<p>Ниже подробный Dockerfile:</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.7</span>-slim-buster</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pip install --no-cache-dir snmpsim</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> data /usr/<span class="built_in">local</span>/snmpsim/data</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">161</span>/udp</span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">&quot;snmpsimd.py&quot;</span>, <span class="string">&quot;--agent-udpv4-endpoint=0.0.0.0:161&quot;</span>, <span class="string">&quot;--process-user=root&quot;</span>, <span class="string">&quot;--process-group=root&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+<p>Файл <strong>public.snmprec</strong> из вышеупомянутой папки <em>data</em> подробно описан в <a href="https://ostart.github.io/2021/06/22/snmpsim/">предыдущем посте по snmpsim в Windows</a>.</p>
+<p>Собственно остаётся перейдти в папку с Dockerfile и выполнить команды:</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build . -t snmp-sim</span><br></pre></td></tr></table></figure>
+<p>и</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -p <span class="number">161</span>:<span class="number">161</span> snmp-sim</span><br></pre></td></tr></table></figure>
+
+<p>Проверить обмен с симулятором можно с помощью программы <a target="_blank" rel="noopener" href="https://www.ireasoning.com/mibbrowser.shtml">MIB Browser</a></p>
+<img src="/2021/06/29/snmpsim-docker/mib-browser.jpg" class="" title="MIB Browser">
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckqhy3ckp0004kovs8u8a5vtd" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-snmpsim" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/22/snmpsim/" class="article-date">
@@ -130,7 +182,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckqbsgmd10003c8vsdwvuhlkr" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckqhy3ckw000skovs45l11opu" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
       
       
       
@@ -211,7 +263,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckqbsgmd00002c8vs15ds2l8b" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckqhy3ckl0001kovs7n3z0wdf" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Share</a>
       
       
       
@@ -252,7 +304,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckqbsgmct0000c8vs76wv1r16" data-title="О чем этот блог" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckqhy3ckg0000kovshsv2c7dg" data-title="О чем этот блог" class="article-share-link">Share</a>
       
       
       
@@ -303,7 +355,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckqbsgmcy0001c8vs5lf0gtjb" data-title="Hello World" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckqhy3ckm0002kovs78pg2cks" data-title="Hello World" class="article-share-link">Share</a>
       
       
       
@@ -328,7 +380,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
     </div>
   </div>
 
@@ -338,7 +390,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/printer/" style="font-size: 10px;">printer</a> <a href="/tags/simulator/" style="font-size: 10px;">simulator</a> <a href="/tags/snmp/" style="font-size: 10px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 10px;">snmpsim</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 10px;">принтер</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 10px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/printer/" style="font-size: 20px;">printer</a> <a href="/tags/simulator/" style="font-size: 20px;">simulator</a> <a href="/tags/snmp/" style="font-size: 20px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 20px;">snmpsim</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 20px;">принтер</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 20px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -358,6 +410,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2021/06/29/snmpsim-docker/">SnmpSim. Запускаем в Docker</a>
+          </li>
         
           <li>
             <a href="/2021/06/22/snmpsim/">SnmpSim. Запускаем в Windows</a>
