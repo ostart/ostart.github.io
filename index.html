@@ -99,20 +99,23 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Если вам однажды потребуется изготовить установщик под Windows, то рекомендую <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/">NSIS (Nullsoft Scriptable Install System)</a>. NSIS - это система с открытым исходным кодом, достаточно компактная и гибкая. У неё есть свои минусы (низкоуровневый синтаксис, включающий работу с регистрами, макросы и т.п.), но плюсы, как правило, их перевешивают. </p>
-<h3 id="К-основным-плюсам-я-бы-отнёс"><a href="#К-основным-плюсам-я-бы-отнёс" class="headerlink" title="К основным плюсам я бы отнёс:"></a>К основным плюсам я бы отнёс:</h3><ul>
-<li>сверх компактный размер (оверхэд всего 34 KB)</li>
+        <p>Если вам однажды потребуется изготовить установщик для Windows, то обратите внимание на <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/">NSIS (Nullsoft Scriptable Install System)</a>. NSIS - это профессиональная система с открытым исходным кодом, компактная и гибкая. У неё есть свои минусы (низкоуровневый синтаксис языка скриптов NSIS, включающий работу с регистрами, макросы и т.п.), но плюсы, как правило, их перевешивают. </p>
+<h3 id="К-основным-плюсам-можно-отнести"><a href="#К-основным-плюсам-можно-отнести" class="headerlink" title="К основным плюсам можно отнести:"></a>К основным плюсам можно отнести:</h3><ul>
+<li>сверх компактный размер (оверхэд самого NSIS всего 34 KB)</li>
+<li>совместимость с основными версиями ОС: Windows 95, Windows 98, Windows ME, Windows NT, Windows 2000, Windows XP, Windows Server 2003, Windows Vista, Windows Sever 2008, Windows 7, Windows Server 2008R2, Windows 8, Windows Server 2012, Windows 8.1, Windows Server 2012R2, Windows Server 2016 и Windows 10</li>
 <li>большое количество плагинов, позволяющих реализовать почти все задумки</li>
 <li>безоплатность</li>
-<li>стабильность работы</li>
-<li>совместимость со всеми версиями: Windows 95, Windows 98, Windows ME, Windows NT, Windows 2000, Windows XP, Windows Server 2003, Windows Vista, Windows Sever 2008, Windows 7, Windows Server 2008R2, Windows 8, Windows Server 2012, Windows 8.1, Windows Server 2012R2, Windows Server 2016 и Windows 10</li>
+<li>стабильность</li>
+<li>многоязычность (в одном установщике до 60-ти языков)</li>
+<li>создание пользовательских диалоговых окон</li>
+<li>создание собственных плагинов (C, C++, Delphi)</li>
 </ul>
-<p>Плагины включают в себя взаимодействие с БД, реестром, файлами, Windows службами, IIS, командной строкой, Powershell, Win32 API вызовы, создание ярлыков, деинсталляторов и многое многое другое.</p>
-<p>Взаимодейтсвие с NSIS основано на скриптах, которые транслируются в Windows установщик. NSIS до сих пор поддерживается (последний релиз NSIS 3.06.1 от 31 июля 2020), имеет большое сообщество и массу туториалов. </p>
+<p>Плагины включают в себя взаимодействие с БД, реестром, папками и файлами, переменными окружения, Windows службами, IIS, командной строкой, Powershell, Win32 API вызовы, перезагрузку системы, интернет соединения, создание ярлыков, деинсталляторов и многое многое другое.</p>
+<p>Взаимодействие с NSIS основано на скриптах (на собственном языке программирования), которые собираются в Windows установщик. NSIS до сих пор поддерживается (последний релиз NSIS 3.06.1 от 31 июля 2020), имеет большое сообщество и массу туториалов. </p>
 <p>Пример самого простого NSIS скрипта:</p>
 <figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">!include</span> <span class="string">&quot;MUI2.nsh&quot;</span></span><br><span class="line"><span class="keyword">!include</span> LogicLib.nsh</span><br><span class="line"></span><br><span class="line"><span class="keyword">Name</span> <span class="string">&quot;SectionTest&quot;</span></span><br><span class="line"><span class="keyword">OutFile</span> <span class="string">&quot;SectionTest.exe&quot;</span></span><br><span class="line"><span class="keyword">ShowInstDetails</span> <span class="literal">show</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_PAGE_COMPONENTS</span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_PAGE_INSTFILES</span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_LANGUAGE <span class="string">&quot;English&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;One&quot; SecOne  </span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;Two&quot; SecTwo  </span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;-OneTwo&quot;</span></span><br><span class="line">        <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecOne&#125;</span></span><br><span class="line">                <span class="keyword">DetailPrint</span> <span class="string">&quot;Section one&quot;</span></span><br><span class="line">                <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecTwo&#125;</span></span><br><span class="line">                        <span class="keyword">DetailPrint</span> <span class="string">&quot;Section two is selected&quot;</span></span><br><span class="line">                <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">        <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">        </span><br><span class="line">        <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecTwo&#125;</span></span><br><span class="line">                <span class="keyword">DetailPrint</span> <span class="string">&quot;Section two&quot;</span></span><br><span class="line">        <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">SectionEnd</span><br></pre></td></tr></table></figure>
 
-<p>Для работы со скриптами я рекомендую воспользоваться программой <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis IX</a>. О работе с ней будет отдельный пост.</p>
+<p>Для работы со скриптами рекомендую пользоваться программой <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis IX</a>. О работе с ней будет отдельный пост.</p>
 <p>В конце хотел бы привести несколько типичных изображений работы установщика NSIS с которым каждый пользователь Windows хоть раз, да сталкивался:</p>
 <img src="/2021/07/17/nsis-intro/nsis-intro1.png" class="" title="NSIS Intro">
 <p>&nbsp;</p>
@@ -121,7 +124,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckr7p50w2000440vs3wso3p0l" data-title="О NSIS" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckr8rnafv0002csvsfav1d9s1" data-title="О NSIS" class="article-share-link">Share</a>
       
       
       
@@ -173,7 +176,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckr7p50w3000640vs83jm2ej8" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckr8rnag10006csvsebd73eor" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Share</a>
       
       
       
@@ -240,7 +243,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckr7p50w3000540vs762p93ih" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckr8rnag00005csvs0rn67f9t" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
       
       
       
@@ -321,7 +324,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckr7p50vx000140vs1m69bhq1" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckr8rnafw0003csvs3s2pdhvg" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Share</a>
       
       
       
@@ -362,7 +365,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckr7p50vt000040vs44o56s6r" data-title="О чем этот блог" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckr8rnafo0000csvsg6rm90hs" data-title="О чем этот блог" class="article-share-link">Share</a>
       
       
       
@@ -413,7 +416,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckr7p50vz000240vs9hkq57yr" data-title="Hello World" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckr8rnafu0001csvsf2ntdgz3" data-title="Hello World" class="article-share-link">Share</a>
       
       
       
