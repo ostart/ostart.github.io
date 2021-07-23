@@ -111,6 +111,7 @@
 <p>В случае ошибки в консоли будет указана причина и строка на которой ошибка случилась.</p>
 <img src="/2021/07/23/venis-IX/venis4.jpg" class="" title="Venis Compile Error">
 
+<p>К сожалению в программе нет привычного разработчикам дебаггера, поэтому отладка скрипта, как правило, осуществляется через всплывающие окна MessageBox или выводом в консоль с помощью DetailPrint.</p>
 <p>Также в программе есть великолепная и подробная справка по языку, командам и макросам NSIS (NSIS User Manual):</p>
 <img src="/2021/07/23/venis-IX/venis5.jpg" class="" title="Venis NSIS Help">
 <p>&nbsp;</p>
@@ -120,7 +121,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckrgcpmh10008pcvs3rpe2vsl" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckrgcz02v0009fgvs70m7ftuv" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Share</a>
       
       
       
@@ -198,7 +199,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckrgcpmgx0004pcvs8q2t4atc" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckrgcz02s0005fgvs69muh62p" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Share</a>
       
       
       
@@ -257,7 +258,7 @@
 <p>Пример простого NSIS скрипта:</p>
 <figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">!include</span> <span class="string">&quot;MUI2.nsh&quot;</span></span><br><span class="line"><span class="keyword">!include</span> LogicLib.nsh</span><br><span class="line"></span><br><span class="line"><span class="keyword">Name</span> <span class="string">&quot;SectionTest&quot;</span></span><br><span class="line"><span class="keyword">OutFile</span> <span class="string">&quot;SectionTest.exe&quot;</span></span><br><span class="line"><span class="keyword">ShowInstDetails</span> <span class="literal">show</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_PAGE_COMPONENTS</span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_PAGE_INSTFILES</span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_LANGUAGE <span class="string">&quot;English&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;One&quot; SecOne  </span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;Two&quot; SecTwo  </span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;-OneTwo&quot;</span></span><br><span class="line">        <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecOne&#125;</span></span><br><span class="line">                <span class="keyword">DetailPrint</span> <span class="string">&quot;Section one&quot;</span></span><br><span class="line">                <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecTwo&#125;</span></span><br><span class="line">                        <span class="keyword">DetailPrint</span> <span class="string">&quot;Section two is selected&quot;</span></span><br><span class="line">                <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">        <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">        </span><br><span class="line">        <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecTwo&#125;</span></span><br><span class="line">                <span class="keyword">DetailPrint</span> <span class="string">&quot;Section two&quot;</span></span><br><span class="line">        <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">SectionEnd</span><br></pre></td></tr></table></figure>
 
-<p>Для работы со скриптами рекомендую пользоваться программой <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis IX</a>. О работе с ней будет отдельный пост.</p>
+<p>Для работы со скриптами рекомендую пользоваться программой <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis IX</a>. Работа с программой описана тут: <a href="https://ostart.github.io/2021/07/23/venis-IX/">Работа с NSIS скриптами в Venis_IX</a>.</p>
 <p>В конце хотел бы привести несколько типичных изображений работы установщика NSIS с которым каждый пользователь Windows хоть раз, да сталкивался:</p>
 <img src="/2021/07/17/nsis-intro/nsis-intro1.png" class="" title="NSIS Intro">
 <p>&nbsp;</p>
@@ -266,7 +267,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckrgcpmgy0005pcvs11bp74ti" data-title="О NSIS" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckrgcz02r0004fgvs4zsb8mxy" data-title="О NSIS" class="article-share-link">Share</a>
       
       
       
@@ -318,7 +319,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckrgcpmh20009pcvsf0olcqhr" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckrgcz02s0006fgvsh6bhbppk" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Share</a>
       
       
       
@@ -385,7 +386,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckrgcpmgz0006pcvs3nly40uk" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckrgcz02u0008fgvsbqco411p" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
       
       
       
@@ -466,7 +467,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckrgcpmgs0001pcvs8pq88fsr" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckrgcz02m0001fgvsb3ax3tdz" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Share</a>
       
       
       
@@ -507,7 +508,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckrgcpmgl0000pcvs83lhd12p" data-title="О чем этот блог" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckrgcz02h0000fgvshh917lz1" data-title="О чем этот блог" class="article-share-link">Share</a>
       
       
       
@@ -558,7 +559,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckrgcpmgu0002pcvsdswr88hd" data-title="Hello World" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckrgcz02o0002fgvs97y16xdv" data-title="Hello World" class="article-share-link">Share</a>
       
       
       
