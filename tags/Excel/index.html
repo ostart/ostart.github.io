@@ -4,23 +4,15 @@
   <meta charset="utf-8">
   
   
-  <title>Структура SNMP запроса get-request | Artem&#39;s Blog</title>
+  <title>Tag: Excel | Artem&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:   Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего м">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Структура SNMP запроса get-request">
-<meta property="og:url" content="https://ostart.github.io/2021/08/12/snmp-request-structure/index.html">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Artem&#39;s Blog">
+<meta property="og:url" content="https://ostart.github.io/tags/Excel/index.html">
 <meta property="og:site_name" content="Artem&#39;s Blog">
-<meta property="og:description" content="Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:   Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего м">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://ostart.github.io/2021/08/12/snmp-request-structure/get-request.jpg">
-<meta property="article:published_time" content="2021-08-12T10:07:11.000Z">
-<meta property="article:modified_time" content="2021-08-12T12:46:26.463Z">
 <meta property="article:author" content="Artem Ostashchenko">
-<meta property="article:tag" content="SNMP">
-<meta property="article:tag" content="get-request">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://ostart.github.io/2021/08/12/snmp-request-structure/get-request.jpg">
   
     <link rel="alternate" href="/atom.xml" title="Artem's Blog" type="application/atom+xml">
   
@@ -83,67 +75,39 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-snmp-request-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/08/12/snmp-request-structure/" class="article-date">
-  <time class="dt-published" datetime="2021-08-12T10:07:11.000Z" itemprop="datePublished">12-08-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
+        <section id="main">
   
-    <h1 class="p-name article-title" itemprop="headline name">
-      Структура SNMP запроса get-request
+  
+    
+    
+      
+      
+      <section class="archives-wrap">
+        <div class="archive-year-wrap">
+          <a href="/archives/2021" class="archive-year">2021</a>
+        </div>
+        <div class="archives">
+    
+    <article class="archive-article archive-type-post">
+  <div class="archive-article-inner">
+    <header class="archive-article-header">
+      <a href="/2021/09/09/epplus-named-style/" class="archive-article-date">
+  <time class="dt-published" datetime="2021-09-09T11:08:53.000Z" itemprop="datePublished">Sep 9</time>
+</a>
+      
+  
+    <h1 itemprop="name">
+      <a class="archive-article-title" href="/2021/09/09/epplus-named-style/">Как эффективно выделять ячейки в файлах Excel с помощью EPPlus</a>
     </h1>
   
 
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:</p>
-<img src="/2021/08/12/snmp-request-structure/get-request.jpg" class="" title="Структура SNMP запроса get-request (Wireshark)">
-
-<p>Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего массива пришедших байтов (0x2C<sub>16</sub> = 44<sub>10</sub>). Пятый байт 0x00 показывает номер версии version-1, за которым следует указатель community и байт его длины 0x06 (6 байт). Значение community начинается в нашем случае с 8-го байта и идёт до 13 байта включительно (0x70 0x75 0x62 0x6C 0x69 0x63). Дальше следуют байты данных самого get-request: открывающий байт 0xA0, длина последующих байтов 0x1F (31 байт), открывающий байт идентификатора запроса 0x02 и длина request-id 0x04. Значение request-id начинается с 18 байта и идёт в нашем случае до 21 байта (0x0B 0x5E 0xA0 0x42), что составляет значение 190750786. Аналогичная величина request-id должна присутствовать в SNMP ответе get-response. Далее 24-м байтом идёт error-status, 27-м байтом идёт error-index, а 33-м байтом идёт длина переданного OID 0x0B (11 байтов): 0x2B 0x06 0x01 0x02 0x01 0x2B 0x05 0x01 0x01 0x11 0x01, что составляет значение 1.3.6.1.2.1.43.5.1.1.17.1. Именно на это значение OID отвечает устройство в ответ. Алгоритм того, как одиннадцать вышеперечисленных байтов превращаются в вышеуказанный OID можно найти в статье <a href="https://ostart.github.io/2021/08/12/simple-snmp-server/">Простой SNMP сервер на C#</a>. SNMP пакет завершается байтами 0x05 0x00.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="cktcvgqvb000h50vsdhstg84a" data-title="Структура SNMP запроса get-request" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li></ul>
-
-    </footer>
+    </header>
   </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/08/12/snmp-response-structure/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Структура SNMP ответа get-response
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/08/03/pragmatic-programmer/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта</div>
-    </a>
-  
-</nav>
-
-  
 </article>
+  
+  
+    </div></section>
+  
 
 
 </section>
