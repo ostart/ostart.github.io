@@ -77,6 +77,55 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-add-csharp-nuget-package-vscode" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/09/17/add-csharp-nuget-package-vscode/" class="article-date">
+  <time class="dt-published" datetime="2021-09-17T10:24:36.000Z" itemprop="datePublished">17-09-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/09/17/add-csharp-nuget-package-vscode/">Добавляем из терминала VSCode NuGet пакеты в C# проект</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Существует возможность создания разнообразных видов проектов <em><strong>.NET 5</strong></em> прямо из терминала <em><strong>VSCode</strong></em>. Взгляните:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">D:\Github\EnumSharp&gt;dotnet new </span><br><span class="line">Template Name                                 Short Name           Language    Tags</span><br><span class="line">--------------------------------------------  -------------------  ----------  ----------------------</span><br><span class="line">Console Application                           console              [C#],F#,VB  Common/Console        </span><br><span class="line">Class library                                 classlib             [C#],F#,VB  Common/Library        </span><br><span class="line">WPF Application                               wpf                  [C#],VB     Common/WPF</span><br><span class="line">WPF Class library                             wpflib               [C#],VB     Common/WPF</span><br><span class="line">WPF Custom Control Library                    wpfcustomcontrollib  [C#],VB     Common/WPF</span><br><span class="line">WPF User Control Library                      wpfusercontrollib    [C#],VB     Common/WPF</span><br><span class="line">Windows Forms App                             winforms             [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Control Library                 winformscontrollib   [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Class Library                   winformslib          [C#],VB     Common/WinForms       </span><br><span class="line">Worker Service                                worker               [C#],F#     Common/Worker/Web     </span><br><span class="line">MSTest Test Project                           mstest               [C#],F#,VB  Test/MSTest</span><br><span class="line">NUnit 3 Test Project                          nunit                [C#],F#,VB  Test/NUnit</span><br><span class="line">NUnit 3 Test Item                             nunit-test           [C#],F#,VB  Test/NUnit</span><br><span class="line">xUnit Test Project                            xunit                [C#],F#,VB  Test/xUnit</span><br><span class="line">Razor Component                               razorcomponent       [C#]        Web/ASP.NET</span><br><span class="line">Razor Page                                    page                 [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewImports                               viewimports          [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewStart                                 viewstart            [C#]        Web/ASP.NET</span><br><span class="line">Blazor Server App                             blazorserver         [C#]        Web/Blazor</span><br><span class="line">Blazor WebAssembly App                        blazorwasm           [C#]        Web/Blazor/WebAssembly</span><br><span class="line">ASP.NET Core Empty                            web                  [C#],F#     Web/Empty</span><br><span class="line">ASP.NET Core Web App (Model-View-Controller)  mvc                  [C#],F#     Web/MVC</span><br><span class="line">ASP.NET Core Web App                          webapp               [C#]        Web/MVC/Razor Pages   </span><br><span class="line">ASP.NET Core with Angular                     angular              [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js                    react                [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js and Redux          reactredux           [C#]        Web/MVC/SPA</span><br><span class="line">Razor Class Library                           razorclasslib        [C#]        Web/Razor/Library     </span><br><span class="line">ASP.NET Core Web API                          webapi               [C#],F#     Web/WebAPI</span><br><span class="line">ASP.NET Core gRPC Service                     grpc                 [C#]        Web/gRPC</span><br><span class="line">dotnet gitignore file                         gitignore                        Config</span><br><span class="line">global.json file                              globaljson                       Config</span><br><span class="line">NuGet Config                                  nugetconfig                      Config</span><br><span class="line">Dotnet local tool manifest file               tool-manifest                    Config</span><br><span class="line">Web Config                                    webconfig                        Config</span><br><span class="line">Solution File                                 sln                              Solution</span><br><span class="line">Protocol Buffer File                          proto                            Web/gRPC</span><br><span class="line"></span><br><span class="line">Examples:</span><br><span class="line">    dotnet new mvc --auth Individual</span><br><span class="line">    dotnet new web </span><br><span class="line">    dotnet new --help</span><br><span class="line">    dotnet new nunit --help</span><br></pre></td></tr></table></figure>
+
+<p>Создадим консольное приложение командой: <code>dotnet new console</code></p>
+<p>Но как теперь добавить в наш проект NuGet пакеты также из терминала?! Install-Package не работает :(</p>
+<p>Тут нам поможет команда: <code>dotnet add package &lt;ИМЯ_ПАКЕТА&gt;</code></p>
+<p>Например, добавим в наш проект пакеты  <strong>BenchmarkDotNet</strong> и <strong>BenchmarkDotNet.Annotations</strong>.<br>Для этого в терминале выполним следующие команды:<br><code>dotnet add package BenchmarkDotNet</code><br><code>dotnet add package BenchmarkDotNet.Annotations</code></p>
+<p>Вуаля! Требующиеся NuGet пакеты добавлены в наш проект:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Project</span> <span class="attr">Sdk</span>=<span class="string">&quot;Microsoft.NET.Sdk&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">OutputType</span>&gt;</span>Exe<span class="tag">&lt;/<span class="name">OutputType</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">TargetFramework</span>&gt;</span>net5.0<span class="tag">&lt;/<span class="name">TargetFramework</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet.Annotations&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">Project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckto9162m0001aovs7y4p0zc0" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-epplus-named-style" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/09/09/epplus-named-style/" class="article-date">
@@ -115,7 +164,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="cktcvgqv1000550vsawav41as" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckto9162s0007aovsfkjidqjj" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
       
       
       
@@ -166,7 +215,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="cktcvgquw000150vs98bn7j8t" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckto9162h0000aovs03hchmoc" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
       
       
       
@@ -213,7 +262,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="cktcvgqv3000850vs39mgd0pz" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckto9162u000baovs17fq6v94" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
       
       
       
@@ -269,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="cktcvgquy000250vsdl3w5y6e" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckto9162q0004aovsffhg39oi" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Share</a>
       
       
       
@@ -329,7 +378,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="cktcvgqv0000450vs9ur963wa" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckto9162q0005aovs4zq94myp" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
       
       
       
@@ -371,7 +420,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="cktcvgqva000f50vs3x3ghnen" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckto91631000iaovsfq16dlje" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
       
       
       
@@ -415,7 +464,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="cktcvgqvd000j50vsctau9xal" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckto91634000paovs324df8tz" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
       
       
       
@@ -459,7 +508,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="cktcvgqvb000h50vsdhstg84a" data-title="Структура SNMP запроса get-request" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckto91632000laovs93b521aa" data-title="Структура SNMP запроса get-request" class="article-share-link">Share</a>
       
       
       
@@ -605,69 +654,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="cktcvgqv9000e50vs8b8ohzf3" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckto9162z000gaovs774ja9m9" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Share</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-venis-IX" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/07/23/venis-IX/" class="article-date">
-  <time class="dt-published" datetime="2021-07-23T08:34:07.000Z" itemprop="datePublished">23-07-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/07/23/venis-IX/">Работа с NSIS скриптами в Venis_IX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Для редактирования и компиляции NSIS скриптов есть замечательная программа <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis_IX</a>.</p>
-<img src="/2021/07/23/venis-IX/venis1.jpg" class="" title="Venis Main Window">
-
-<p>Для шаблонной генерации скрипта установщика в программе присутствует Venis Install Wizard:</p>
-<img src="/2021/07/23/venis-IX/venis2.jpg" class="" title="Venis Install Wizard">
-
-<p>В основном окне можно создать / открыть скрипт (расширение .nsi), отредактировать его и откомпилировать. Результат компиляции отображается в консольном окне Compile Results. В случае успеха будет показан конечный размер установщика (Total size:) в байтах, как показано на изображении ниже:</p>
-<img src="/2021/07/23/venis-IX/venis3.jpg" class="" title="Venis Compile Results">
-
-<p>В случае ошибки в консоли будет указана причина и строка на которой ошибка случилась.</p>
-<img src="/2021/07/23/venis-IX/venis4.jpg" class="" title="Venis Compile Error">
-
-<p>К сожалению в программе нет привычного разработчикам дебаггера, поэтому отладка скрипта, как правило, осуществляется при его выполнении через всплывающие окна MessageBox или вывод в консоль с помощью DetailPrint.</p>
-<p>Также в программе есть великолепная и подробная справка по языку, командам и макросам NSIS (NSIS User Manual):</p>
-<img src="/2021/07/23/venis-IX/venis5.jpg" class="" title="Venis NSIS Help">
-<p>&nbsp;</p>
-<img src="/2021/07/23/venis-IX/venis6.jpg" class="" title="Venis NSIS User Manual">
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="cktcvgqw0003350vset6idxxj" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/script/" rel="tag">script</a></li></ul>
 
     </footer>
   </div>
@@ -695,7 +686,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
     </div>
   </div>
 
@@ -705,7 +696,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -727,6 +718,10 @@
       <ul>
         
           <li>
+            <a href="/2021/09/17/add-csharp-nuget-package-vscode/">Добавляем из терминала VSCode NuGet пакеты в C# проект</a>
+          </li>
+        
+          <li>
             <a href="/2021/09/09/epplus-named-style/">Как эффективно выделять ячейки в файлах Excel с помощью EPPlus</a>
           </li>
         
@@ -740,10 +735,6 @@
         
           <li>
             <a href="/2021/09/07/clearscript/">ClearScript. Добавь скрипты в своё .NET приложение</a>
-          </li>
-        
-          <li>
-            <a href="/2021/08/22/concurrency-with-httpclient/">Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers</a>
           </li>
         
       </ul>

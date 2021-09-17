@@ -4,18 +4,22 @@
   <meta charset="utf-8">
   
   
-  <title>О чем этот блог | Artem&#39;s Blog</title>
+  <title>Добавляем из терминала VSCode NuGet пакеты в C# проект | Artem&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Меня зовут Артём Остащенко. Я - C#.NET разработчик, балующийся фронтендом. Так как я по образованию инженер в области материалов и компонентов твердотельной электроники, то программирование изучал сам">
+  <meta name="description" content="Существует возможность создания разнообразных видов проектов .NET 5 прямо из терминала VSCode. Взгляните: 123456789101112131415161718192021222324252627282930313233343536373839404142434445D:\Github\Enu">
 <meta property="og:type" content="article">
-<meta property="og:title" content="О чем этот блог">
-<meta property="og:url" content="https://ostart.github.io/2021/06/03/blog-subjects/index.html">
+<meta property="og:title" content="Добавляем из терминала VSCode NuGet пакеты в C# проект">
+<meta property="og:url" content="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/index.html">
 <meta property="og:site_name" content="Artem&#39;s Blog">
-<meta property="og:description" content="Меня зовут Артём Остащенко. Я - C#.NET разработчик, балующийся фронтендом. Так как я по образованию инженер в области материалов и компонентов твердотельной электроники, то программирование изучал сам">
+<meta property="og:description" content="Существует возможность создания разнообразных видов проектов .NET 5 прямо из терминала VSCode. Взгляните: 123456789101112131415161718192021222324252627282930313233343536373839404142434445D:\Github\Enu">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-06-03T04:21:54.000Z">
-<meta property="article:modified_time" content="2021-06-10T04:42:10.805Z">
+<meta property="article:published_time" content="2021-09-17T10:24:36.000Z">
+<meta property="article:modified_time" content="2021-09-17T10:56:46.559Z">
 <meta property="article:author" content="Artem Ostashchenko">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="NuGet">
+<meta property="article:tag" content="VSCode">
+<meta property="article:tag" content="net5.0">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Artem's Blog" type="application/atom+xml">
@@ -79,10 +83,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-blog-subjects" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-add-csharp-nuget-package-vscode" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/06/03/blog-subjects/" class="article-date">
-  <time class="dt-published" datetime="2021-06-03T04:21:54.000Z" itemprop="datePublished">03-06-2021</time>
+    <a href="/2021/09/17/add-csharp-nuget-package-vscode/" class="article-date">
+  <time class="dt-published" datetime="2021-09-17T10:24:36.000Z" itemprop="datePublished">17-09-2021</time>
 </a>
     
   </div>
@@ -93,7 +97,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      О чем этот блог
+      Добавляем из терминала VSCode NuGet пакеты в C# проект
     </h1>
   
 
@@ -101,34 +105,35 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Меня зовут Артём Остащенко. Я - C#.NET разработчик, балующийся фронтендом. Так как я по образованию инженер в области материалов и компонентов твердотельной электроники, то программирование изучал самостоятельно. В этом мне очень помогли <a target="_blank" rel="noopener" href="https://itvdn.com/ru">ITVDN</a>, <a target="_blank" rel="noopener" href="https://ru.hexlet.io/">Hexlet</a>, <a target="_blank" rel="noopener" href="https://htmlacademy.ru/">HTML Academy</a>, <a target="_blank" rel="noopener" href="https://ulearn.me/">Ulearn.me</a>, <a target="_blank" rel="noopener" href="https://stepik.org/">Stepik</a> и <a target="_blank" rel="noopener" href="https://vk.com/lambda_brain">Сергей Игоревич Бобровский</a>. Этот блог будет посвящён разработке ПО для принтеров, электросчётчиков, C#, фронтенду (JS, React) и книгам, которые я прочёл и рекомендую другим.</p>
+        <p>Существует возможность создания разнообразных видов проектов <em><strong>.NET 5</strong></em> прямо из терминала <em><strong>VSCode</strong></em>. Взгляните:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">D:\Github\EnumSharp&gt;dotnet new </span><br><span class="line">Template Name                                 Short Name           Language    Tags</span><br><span class="line">--------------------------------------------  -------------------  ----------  ----------------------</span><br><span class="line">Console Application                           console              [C#],F#,VB  Common/Console        </span><br><span class="line">Class library                                 classlib             [C#],F#,VB  Common/Library        </span><br><span class="line">WPF Application                               wpf                  [C#],VB     Common/WPF</span><br><span class="line">WPF Class library                             wpflib               [C#],VB     Common/WPF</span><br><span class="line">WPF Custom Control Library                    wpfcustomcontrollib  [C#],VB     Common/WPF</span><br><span class="line">WPF User Control Library                      wpfusercontrollib    [C#],VB     Common/WPF</span><br><span class="line">Windows Forms App                             winforms             [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Control Library                 winformscontrollib   [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Class Library                   winformslib          [C#],VB     Common/WinForms       </span><br><span class="line">Worker Service                                worker               [C#],F#     Common/Worker/Web     </span><br><span class="line">MSTest Test Project                           mstest               [C#],F#,VB  Test/MSTest</span><br><span class="line">NUnit 3 Test Project                          nunit                [C#],F#,VB  Test/NUnit</span><br><span class="line">NUnit 3 Test Item                             nunit-test           [C#],F#,VB  Test/NUnit</span><br><span class="line">xUnit Test Project                            xunit                [C#],F#,VB  Test/xUnit</span><br><span class="line">Razor Component                               razorcomponent       [C#]        Web/ASP.NET</span><br><span class="line">Razor Page                                    page                 [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewImports                               viewimports          [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewStart                                 viewstart            [C#]        Web/ASP.NET</span><br><span class="line">Blazor Server App                             blazorserver         [C#]        Web/Blazor</span><br><span class="line">Blazor WebAssembly App                        blazorwasm           [C#]        Web/Blazor/WebAssembly</span><br><span class="line">ASP.NET Core Empty                            web                  [C#],F#     Web/Empty</span><br><span class="line">ASP.NET Core Web App (Model-View-Controller)  mvc                  [C#],F#     Web/MVC</span><br><span class="line">ASP.NET Core Web App                          webapp               [C#]        Web/MVC/Razor Pages   </span><br><span class="line">ASP.NET Core with Angular                     angular              [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js                    react                [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js and Redux          reactredux           [C#]        Web/MVC/SPA</span><br><span class="line">Razor Class Library                           razorclasslib        [C#]        Web/Razor/Library     </span><br><span class="line">ASP.NET Core Web API                          webapi               [C#],F#     Web/WebAPI</span><br><span class="line">ASP.NET Core gRPC Service                     grpc                 [C#]        Web/gRPC</span><br><span class="line">dotnet gitignore file                         gitignore                        Config</span><br><span class="line">global.json file                              globaljson                       Config</span><br><span class="line">NuGet Config                                  nugetconfig                      Config</span><br><span class="line">Dotnet local tool manifest file               tool-manifest                    Config</span><br><span class="line">Web Config                                    webconfig                        Config</span><br><span class="line">Solution File                                 sln                              Solution</span><br><span class="line">Protocol Buffer File                          proto                            Web/gRPC</span><br><span class="line"></span><br><span class="line">Examples:</span><br><span class="line">    dotnet new mvc --auth Individual</span><br><span class="line">    dotnet new web </span><br><span class="line">    dotnet new --help</span><br><span class="line">    dotnet new nunit --help</span><br></pre></td></tr></table></figure>
+
+<p>Создадим консольное приложение командой: <code>dotnet new console</code></p>
+<p>Но как теперь добавить в наш проект NuGet пакеты также из терминала?! Install-Package не работает :(</p>
+<p>Тут нам поможет команда: <code>dotnet add package &lt;ИМЯ_ПАКЕТА&gt;</code></p>
+<p>Например, добавим в наш проект пакеты  <strong>BenchmarkDotNet</strong> и <strong>BenchmarkDotNet.Annotations</strong>.<br>Для этого в терминале выполним следующие команды:<br><code>dotnet add package BenchmarkDotNet</code><br><code>dotnet add package BenchmarkDotNet.Annotations</code></p>
+<p>Вуаля! Требующиеся NuGet пакеты добавлены в наш проект:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Project</span> <span class="attr">Sdk</span>=<span class="string">&quot;Microsoft.NET.Sdk&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">OutputType</span>&gt;</span>Exe<span class="tag">&lt;/<span class="name">OutputType</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">TargetFramework</span>&gt;</span>net5.0<span class="tag">&lt;/<span class="name">TargetFramework</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet.Annotations&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">Project</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckto9162p0003aovs58nc2q1w" data-title="О чем этот блог" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckto9162m0001aovs7y4p0zc0" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
       
       
       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li></ul>
+
     </footer>
   </div>
   
     
 <nav id="article-nav">
   
-    <a href="/2021/06/05/github-pages/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Алгоритм создания блога на GitHub Pages
-        
-      </div>
-    </a>
   
-  
-    <a href="/2021/06/03/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2021/09/09/epplus-named-style/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Hello World</div>
+      <div class="article-nav-title">Как эффективно выделять ячейки в файлах Excel с помощью EPPlus</div>
     </a>
   
 </nav>
