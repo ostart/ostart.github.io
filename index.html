@@ -77,6 +77,59 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-enum-is-defined-csharp" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/09/18/enum-is-defined-csharp/" class="article-date">
+  <time class="dt-published" datetime="2021-09-18T06:20:27.000Z" itemprop="datePublished">18-09-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/09/18/enum-is-defined-csharp/">Enum.IsDefined и с чем его едят</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Работа с перечислениями (Enum) в C# имеет очень большие издержки. Это странно, т.к. перечисления целочисленны по своей природе, но из-за требований безопасности типов даже простые операции обходятся дорого. Подробно этот аспект освещён в книге Бена Уотсона “Высокопроизводительный код на платформе .NET” (2-е издание) в главе 6 “Использование среды .NET Framework” раздел “Удивительно высокие издержки использования перечислений”. Там рассмотрено устройство функции Enum.HasFlag, а анализ функции Enum.IsDefined оставлен в виде домашнего задания. Собственно займёмся этой функцией, учтя основную рекомендацию Бена: <strong>“если окажется, что проверять наличие флага приходится часто, реализуйте проверку самостоятельно”</strong>. ILSpy показывает следующее устройство функции IsDefined:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// System.Enum</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">bool</span> <span class="title">IsDefined</span>(<span class="params">Type enumType, <span class="built_in">object</span> <span class="keyword">value</span></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> ((<span class="built_in">object</span>)enumType == <span class="literal">null</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string">&quot;enumType&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> enumType.IsEnumDefined(<span class="keyword">value</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// System.Type</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="built_in">bool</span> <span class="title">IsEnumDefined</span>(<span class="params"><span class="built_in">object</span> <span class="keyword">value</span></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> (<span class="keyword">value</span> == <span class="literal">null</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string">&quot;value&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (!IsEnum)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentException(SR.Arg_MustBeEnum, <span class="string">&quot;value&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	Type type = <span class="keyword">value</span>.GetType();</span><br><span class="line">	<span class="keyword">if</span> (type.IsEnum)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (!type.IsEquivalentTo(<span class="keyword">this</span>))</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentException(SR.Format(SR.Arg_EnumAndObjectMustBeSameType, type, <span class="keyword">this</span>));</span><br><span class="line">		&#125;</span><br><span class="line">		type = type.GetEnumUnderlyingType();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (type == <span class="keyword">typeof</span>(<span class="built_in">string</span>))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">string</span>[] enumNames = GetEnumNames();</span><br><span class="line">		<span class="built_in">object</span>[] array = enumNames;</span><br><span class="line">		<span class="keyword">if</span> (Array.IndexOf(array, <span class="keyword">value</span>) &gt;= <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (IsIntegerType(type))</span><br><span class="line">	&#123;</span><br><span class="line">		Type enumUnderlyingType = GetEnumUnderlyingType();</span><br><span class="line">		<span class="keyword">if</span> (enumUnderlyingType.GetTypeCodeImpl() != type.GetTypeCodeImpl())</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentException(SR.Format(SR.Arg_EnumUnderlyingTypeAndObjectMustBeSameType, type, enumUnderlyingType));</span><br><span class="line">		&#125;</span><br><span class="line">		Array enumRawConstantValues = GetEnumRawConstantValues();</span><br><span class="line">		<span class="keyword">return</span> BinarySearch(enumRawConstantValues, <span class="keyword">value</span>) &gt;= <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">throw</span> <span class="keyword">new</span> InvalidOperationException(SR.InvalidOperation_UnknownEnumType);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Выглядит такой код чрезмерно сложно. Попробуем реализовать метод IsDefined самостоятельно. Для этого преобразуем перечисление в словарь <strong>equivalentEnumDictionary</strong> внутри класса <strong>MyEnum</strong>. Тогда эквивалентом метода <strong>IsDefined</strong> будет метод <strong>MyIsDefined</strong> с таким же набором аргументов:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> System.Linq;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title">EnumSharp</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">class</span> <span class="title">MyEnum</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> Dictionary&lt;<span class="built_in">int</span>, <span class="built_in">string</span>&gt; equivalentEnumDictionary;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">bool</span> <span class="title">MyIsDefined</span>(<span class="params">Type enumType, <span class="built_in">object</span> <span class="keyword">value</span></span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (equivalentEnumDictionary == <span class="literal">null</span>) </span><br><span class="line">            &#123;</span><br><span class="line">                equivalentEnumDictionary = Enum.GetValues(enumType)</span><br><span class="line">                                               .Cast&lt;<span class="built_in">object</span>&gt;()</span><br><span class="line">                                               .ToDictionary(k =&gt; (<span class="built_in">int</span>)k, v =&gt; ((Enum)v).ToString());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">value</span> <span class="keyword">is</span> <span class="built_in">int</span> &amp;&amp; equivalentEnumDictionary.ContainsKey((<span class="built_in">int</span>)<span class="keyword">value</span>))</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">value</span> <span class="keyword">is</span> <span class="built_in">string</span> &amp;&amp; equivalentEnumDictionary.ContainsValue((<span class="built_in">string</span>)<span class="keyword">value</span>))</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">value</span>.GetType() == enumType &amp;&amp; equivalentEnumDictionary.ContainsValue(<span class="keyword">value</span>.ToString()))</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>; </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Преобразование перечисления в словарь произойдёт единожды при первом обращении к методу <strong>MyIsDefined</strong>.</p>
+<p>Измерим, насколько самостоятельная проверка <strong>MyIsDefined</strong> быстрее встроенной <strong>IsDefined</strong>. Для этого воспользуемся библиотекой <strong>BenchmarkDotNet</strong>.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> BenchmarkDotNet.Attributes;</span><br><span class="line"><span class="keyword">using</span> BenchmarkDotNet.Running;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title">EnumSharp</span></span><br><span class="line">&#123;</span><br><span class="line">    [<span class="meta">Flags</span>] </span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">enum</span> PetType</span><br><span class="line">    &#123;</span><br><span class="line">        None = <span class="number">0</span>, Dog = <span class="number">1</span>, Cat = <span class="number">2</span>, Rodent = <span class="number">4</span>, Bird = <span class="number">8</span>, Reptile = <span class="number">16</span>, Other = <span class="number">32</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">EnumsBenchmark</span></span><br><span class="line">    &#123;</span><br><span class="line">        [<span class="meta">Benchmark</span>]</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">MethodEnumIsDefined</span>(<span class="params"></span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">bool</span> result;</span><br><span class="line"></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">1</span>); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">64</span>); <span class="comment">// false</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;Rodent&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog | PetType.Cat); <span class="comment">// false</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;None&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;NONE&quot;</span>); <span class="comment">// false</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        [<span class="meta">Benchmark</span>]</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">MethodMyIsDefined</span>(<span class="params"></span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">bool</span> result;</span><br><span class="line"></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">1</span>); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">64</span>); <span class="comment">// false</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;Rodent&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog | PetType.Cat); <span class="comment">// false</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;None&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;NONE&quot;</span>); <span class="comment">// false</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">var</span> summary = BenchmarkRunner.Run&lt;EnumsBenchmark&gt;();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>И вот результаты:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|              Method |     Mean |    Error |   StdDev |</span><br><span class="line">|-------------------- |---------:|---------:|---------:|</span><br><span class="line">| MethodEnumIsDefined | 845.3 ns | 15.14 ns | 13.42 ns |</span><br><span class="line">|   MethodMyIsDefined | 350.2 ns |  6.95 ns |  6.83 ns |</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Получается, что самостоятельная проверка <strong>IsDefined</strong> более чем в два раза быстрее даже при такой прямолинейной реализации. Стоит согласиться с Беном Уотсоном, что если проверять <strong>IsDefined</strong> приходится часто, то реализация самостоятельной проверки даст существенный профит. При обычном сценарии достаточно пользоваться встроенной <strong>IsDefined</strong>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckttwjokh00057kvshrmvbu6x" data-title="Enum.IsDefined и с чем его едят" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-add-csharp-nuget-package-vscode" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/09/17/add-csharp-nuget-package-vscode/" class="article-date">
@@ -99,7 +152,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Существует возможность создания разнообразных видов проектов <em><strong>.NET 5</strong></em> прямо из терминала <em><strong>VSCode</strong></em>. Взгляните:</p>
+        <p>Существует возможность создания разнообразных видов проектов <em><strong>.NET 5</strong></em> прямо из терминала <em><strong>VSCode</strong></em>. Терминал можно вызвать горячими клавишами <code>Ctrl+`</code> или с помощью меню <code>View -&gt; Terminal</code>. Взгляните:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">D:\Github\EnumSharp&gt;dotnet new </span><br><span class="line">Template Name                                 Short Name           Language    Tags</span><br><span class="line">--------------------------------------------  -------------------  ----------  ----------------------</span><br><span class="line">Console Application                           console              [C#],F#,VB  Common/Console        </span><br><span class="line">Class library                                 classlib             [C#],F#,VB  Common/Library        </span><br><span class="line">WPF Application                               wpf                  [C#],VB     Common/WPF</span><br><span class="line">WPF Class library                             wpflib               [C#],VB     Common/WPF</span><br><span class="line">WPF Custom Control Library                    wpfcustomcontrollib  [C#],VB     Common/WPF</span><br><span class="line">WPF User Control Library                      wpfusercontrollib    [C#],VB     Common/WPF</span><br><span class="line">Windows Forms App                             winforms             [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Control Library                 winformscontrollib   [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Class Library                   winformslib          [C#],VB     Common/WinForms       </span><br><span class="line">Worker Service                                worker               [C#],F#     Common/Worker/Web     </span><br><span class="line">MSTest Test Project                           mstest               [C#],F#,VB  Test/MSTest</span><br><span class="line">NUnit 3 Test Project                          nunit                [C#],F#,VB  Test/NUnit</span><br><span class="line">NUnit 3 Test Item                             nunit-test           [C#],F#,VB  Test/NUnit</span><br><span class="line">xUnit Test Project                            xunit                [C#],F#,VB  Test/xUnit</span><br><span class="line">Razor Component                               razorcomponent       [C#]        Web/ASP.NET</span><br><span class="line">Razor Page                                    page                 [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewImports                               viewimports          [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewStart                                 viewstart            [C#]        Web/ASP.NET</span><br><span class="line">Blazor Server App                             blazorserver         [C#]        Web/Blazor</span><br><span class="line">Blazor WebAssembly App                        blazorwasm           [C#]        Web/Blazor/WebAssembly</span><br><span class="line">ASP.NET Core Empty                            web                  [C#],F#     Web/Empty</span><br><span class="line">ASP.NET Core Web App (Model-View-Controller)  mvc                  [C#],F#     Web/MVC</span><br><span class="line">ASP.NET Core Web App                          webapp               [C#]        Web/MVC/Razor Pages   </span><br><span class="line">ASP.NET Core with Angular                     angular              [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js                    react                [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js and Redux          reactredux           [C#]        Web/MVC/SPA</span><br><span class="line">Razor Class Library                           razorclasslib        [C#]        Web/Razor/Library     </span><br><span class="line">ASP.NET Core Web API                          webapi               [C#],F#     Web/WebAPI</span><br><span class="line">ASP.NET Core gRPC Service                     grpc                 [C#]        Web/gRPC</span><br><span class="line">dotnet gitignore file                         gitignore                        Config</span><br><span class="line">global.json file                              globaljson                       Config</span><br><span class="line">NuGet Config                                  nugetconfig                      Config</span><br><span class="line">Dotnet local tool manifest file               tool-manifest                    Config</span><br><span class="line">Web Config                                    webconfig                        Config</span><br><span class="line">Solution File                                 sln                              Solution</span><br><span class="line">Protocol Buffer File                          proto                            Web/gRPC</span><br><span class="line"></span><br><span class="line">Examples:</span><br><span class="line">    dotnet new mvc --auth Individual</span><br><span class="line">    dotnet new web </span><br><span class="line">    dotnet new --help</span><br><span class="line">    dotnet new nunit --help</span><br></pre></td></tr></table></figure>
 
 <p>Создадим консольное приложение командой: <code>dotnet new console</code></p>
@@ -112,7 +165,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckto9162m0001aovs7y4p0zc0" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckttwjok600007kvshkmug8np" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
       
       
       
@@ -164,7 +217,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckto9162s0007aovsfkjidqjj" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckttwjokk00087kvsgthfg99c" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
       
       
       
@@ -215,7 +268,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckto9162h0000aovs03hchmoc" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckttwjokb00017kvsc66a64q9" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
       
       
       
@@ -262,7 +315,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckto9162u000baovs17fq6v94" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckttwjokn000d7kvs2smn44o4" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
       
       
       
@@ -318,7 +371,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckto9162q0004aovsffhg39oi" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckttwjokg00047kvsdq8r79p7" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Share</a>
       
       
       
@@ -378,7 +431,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckto9162q0005aovs4zq94myp" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckttwjokj00077kvs1dln9r9c" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
       
       
       
@@ -420,7 +473,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckto91631000iaovsfq16dlje" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckttwjokt000l7kvsh92v949r" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
       
       
       
@@ -464,7 +517,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckto91634000paovs324df8tz" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckttwjokt000n7kvseleu5xsk" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
       
       
       
@@ -508,157 +561,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckto91632000laovs93b521aa" data-title="Структура SNMP запроса get-request" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckttwjokv000p7kvs8r2gfxdp" data-title="Структура SNMP запроса get-request" class="article-share-link">Share</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-pragmatic-programmer" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/08/03/pragmatic-programmer/" class="article-date">
-  <time class="dt-published" datetime="2021-08-03T12:17:04.000Z" itemprop="datePublished">03-08-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/08/03/pragmatic-programmer/">О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Традиционно книга Дэвида Томаса и Эндрю Ханта “Программист-прагматик. Ваш путь к мастерству” (David Thomas, Andrew Hunt - The Pragmatic Programmer) относится к разряду MUST HAVE/READ и не спроста. Колоссальный опыт авторов с великолепным стилем изложения материала (советы, задачи и упражнения) делают данную книгу столько важной в карьере разработчика. Не могу сказать, что прочёл книгу на одном дыхании. Некоторые темы давались труднее других и требовали времени на переваривание. Могу рекомендовать данную книгу как новичкам, так и опытным программистам - все смогут найти полезное в ней по своему уровню. </p>
-<p>Также хотел отметить, что авторы не просто сконцентрировались на коде, но и на многих аспектах жизни разработчика, включая нравственные вопросы: кто будет пользоваться данным кодом и приближает ли ваш код наш мир к тому образу будущего, который бы вы хотели видеть? (У вас же есть такой образ, правда?)</p>
-<p>Хотел бы вкратце резюмировать советы авторов, которые раскрываются примерами в основном содержимом книги:</p>
-<ol>
-<li>Заботьтесь о своем ремесле</li>
-<li>Думайте о своей работе</li>
-<li>У вас есть свобода выбора</li>
-<li>Предлагайте варианты разрешения затруднений, а не оправдания и извинения</li>
-<li>Нельзя жить с разбитыми окнами</li>
-<li>Будьте катализатором перемен</li>
-<li>Не забывайте об общей картине</li>
-<li>Включайте в требования к системе вопрос о её качестве</li>
-<li>Регулярно инвестируйте в свой багаж знаний</li>
-<li>Критически анализируйте то, что вы читаете и слышите</li>
-<li>Родной язык - это просто ещё один язык программирования</li>
-<li>Важно не только то, что вы говорите, но и как вы это говорите</li>
-<li>Создавая документацию, не фиксируйте её навечно</li>
-<li>Удачное проектное решение легче изменить, чем неудачное</li>
-<li>DRY - Don’t Repeat Yourself (не повторяйся)</li>
-<li>Упрощайте повторное использование исходного кода</li>
-<li>Исключайте взаимное влияние несвязанных компонентов системы</li>
-<li>Окончательных решений не существует</li>
-<li>Остерегайтесь увлекаться новомодными веяниями</li>
-<li>Пользуйтесь методом трассирующих пуль для отыскания целей</li>
-<li>Создавайте прототипы для обучения</li>
-<li>Программируйте близко к предметной области</li>
-<li>Выполняйте оценку, чтобы исключить неожиданности</li>
-<li>Повторно уточняйте график выполнения работ по мере написания кода</li>
-<li>Храните свои знания в виде простого текста</li>
-<li>Используйте всю мощь командных оболочек</li>
-<li>Стремитесь свободно владеть редактором</li>
-<li>Всегда пользуйтесь системой контроля версий</li>
-<li>Устраните затруднение, а не вините в нём других</li>
-<li>Не паникуй!</li>
-<li>Вылавливающий ошибку тест должен предшествовать её исправлению</li>
-<li>Внимательно читайте сообщения об ошибке, каким бы отвратительным оно ни было</li>
-<li>Системный вызов <strong>select</strong> работает нормально</li>
-<li>Не предполагайте, а доказывайте</li>
-<li>Изучите язык манипулирования текстом</li>
-<li>Написать идеальную программу нельзя</li>
-<li>Проектируйте по контракту</li>
-<li>Пользуйтесь досрочным аварийным завершением программы</li>
-<li>Пользуйтесь утверждениями, чтобы предотвратить невозможное</li>
-<li>Завершайте то, что начали</li>
-<li>Действуйте локально</li>
-<li>Всегда предпринимайте небольшие шаги</li>
-<li>Избегайте предсказания будущего</li>
-<li>Развязанный код проще изменить</li>
-<li>Указывай, а не спрашивай</li>
-<li>Не связывайте вызовы методов в цепочку</li>
-<li>Избегайте глобальных данных</li>
-<li>Если данные настолько важны, чтобы быть глобальными, заключите их в оболочку API</li>
-<li>Программирование имеет отношение к коду, а программы - к данным</li>
-<li>Не накапливайте состояние, а передавайте его по кругу</li>
-<li>Не платите налог на наследование</li>
-<li>Выражать полиморфизм предпочтительнее с помощью интерфейсов</li>
-<li>Делегируйте полномочия службам: отношение СОДЕРЖИТ превосходит отношение ЯВЛЯЕТСЯ</li>
-<li>Пользуйтесь миксинами для совместного использования функциональных возможностей</li>
-<li>Параметризуйте своё приложение, используя внешнюю конфигурацию</li>
-<li>Анализируйте последовательность выполняемых действий с целью повышения параллельности</li>
-<li>Общее состояние - неверное состояние</li>
-<li>Случайные отказы часто вызваны осложнениями, возникающими в связи с параллельностью</li>
-<li>Пользуйтесь акторами, чтобы достичь параллельности без общего состояния</li>
-<li>Пользуйтесь классными досками для координации потока выполнения</li>
-<li>Прислушивайтесь к своим внутренним чувствам</li>
-<li>Не программируйте по совпадению</li>
-<li>Оценивайте порядок производительности своих алгоритмов</li>
-<li>Проверяйте свои оценки</li>
-<li>Выполняйте рефакторинг кода как можно раньше и чаще</li>
-<li>Тестирование предназначено не для выявления программных ошибок</li>
-<li>Тест - первый пользователь вашего кода</li>
-<li>Стройте комплексно, а не сверху вниз или снизу вверх</li>
-<li>Проектируйте с учетом тестирования</li>
-<li>Тестируйте свои программы сами, иначе их будут тестировать пользователи</li>
-<li>Пользуйтесь тестами на основе свойств для проверки правильности ваших предположений</li>
-<li>Не усложняйте код и минимизируйте поверхность атак</li>
-<li>Устанавливайте обновления системы безопасности незамедлительно</li>
-<li>Именуйте правильно; а по мере надобности переименовывайте</li>
-<li>Никто точно не знает, чего он хочет</li>
-<li>Программисты помогают людям понять, чего они хотят на самом деле</li>
-<li>Требования изучаются с помощью обратной связи</li>
-<li>Работайте с пользователем, чтобы мыслить как пользователь</li>
-<li>Бизнес-правила - это метаданные</li>
-<li>Пользуйтесь словарем терминов проекта</li>
-<li>Вместо того, чтобы мыслить нешаблонно, <em>находите</em> шаблон</li>
-<li>Не вникайте в исходный код в одиночку</li>
-<li>Гибкость - это не существительное, а порядок выполнения действий</li>
-<li>Поддерживайте небольшие, устойчивые команды</li>
-<li>Планируйте и воплощайте в жизнь пополнение багажа знаний</li>
-<li>Организовывайте полнофункциональные команды</li>
-<li>Делайте то, что пригодно, а не то, что модно</li>
-<li>Выпускайте программное обеспечение, когда оно требуется пользователям</li>
-<li>Пользуйтесь контролем версий, чтобы проводить сборки, тесты и выпуски</li>
-<li>Текстируйте как можно раньше, чаще и автоматически</li>
-<li>Программирование нельзя считать завершенным до тех пор, пока не пройдут все тесты</li>
-<li>Пользуйтесь саботажем для проверки своих тестов</li>
-<li>Проверяйте покрытие тестами состояний, а не исходного кода</li>
-<li>Обнаруживайте ошибки единожды</li>
-<li>Не пользуйтесь ручными процедурами</li>
-<li>Доставляйте пользователям не просто код, а удовольствие</li>
-<li>Подписывайте свою работу</li>
-<li>Прежде всего, не нанесите вред</li>
-<li>Не потакайте всякой шушере</li>
-<li>Это ваша жизнь. Делитесь ею, празднуйте и стройте её. И ЖЕЛАЕМ ПОЛУЧИТЬ ОТ ЭТОГО УДОВОЛЬСТВИЕ!</li>
-</ol>
-<p>Некоторые советы кажутся очевидными, некоторые - интригующе-непонятными, но будучи вырванными из контекста они мало что дают для понимания без прочтения самой книги. Прочтите - не пожалеете!</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckto9162z000gaovs774ja9m9" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li></ul>
 
     </footer>
   </div>
@@ -686,7 +593,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
     </div>
   </div>
 
@@ -696,7 +603,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -718,6 +625,10 @@
       <ul>
         
           <li>
+            <a href="/2021/09/18/enum-is-defined-csharp/">Enum.IsDefined и с чем его едят</a>
+          </li>
+        
+          <li>
             <a href="/2021/09/17/add-csharp-nuget-package-vscode/">Добавляем из терминала VSCode NuGet пакеты в C# проект</a>
           </li>
         
@@ -731,10 +642,6 @@
         
           <li>
             <a href="/2021/09/07/js-bytes-to-float/">Преобразование массива байтов во float в JavaScript</a>
-          </li>
-        
-          <li>
-            <a href="/2021/09/07/clearscript/">ClearScript. Добавь скрипты в своё .NET приложение</a>
           </li>
         
       </ul>

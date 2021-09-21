@@ -4,30 +4,15 @@
   <meta charset="utf-8">
   
   
-  <title>Работа с NSIS скриптами в Venis_IX | Artem&#39;s Blog</title>
+  <title>Tag: Enum | Artem&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Для редактирования и компиляции NSIS скриптов есть замечательная программа Venis_IX.   Для шаблонной генерации скрипта установщика в программе присутствует Venis Install Wizard:   В основном окне можн">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Работа с NSIS скриптами в Venis_IX">
-<meta property="og:url" content="https://ostart.github.io/2021/07/23/venis-IX/index.html">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Artem&#39;s Blog">
+<meta property="og:url" content="https://ostart.github.io/tags/Enum/index.html">
 <meta property="og:site_name" content="Artem&#39;s Blog">
-<meta property="og:description" content="Для редактирования и компиляции NSIS скриптов есть замечательная программа Venis_IX.   Для шаблонной генерации скрипта установщика в программе присутствует Venis Install Wizard:   В основном окне можн">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://ostart.github.io/2021/07/23/venis-IX/venis1.jpg">
-<meta property="og:image" content="https://ostart.github.io/2021/07/23/venis-IX/venis2.jpg">
-<meta property="og:image" content="https://ostart.github.io/2021/07/23/venis-IX/venis3.jpg">
-<meta property="og:image" content="https://ostart.github.io/2021/07/23/venis-IX/venis4.jpg">
-<meta property="og:image" content="https://ostart.github.io/2021/07/23/venis-IX/venis5.jpg">
-<meta property="og:image" content="https://ostart.github.io/2021/07/23/venis-IX/venis6.jpg">
-<meta property="article:published_time" content="2021-07-23T08:34:07.000Z">
-<meta property="article:modified_time" content="2021-07-23T13:12:45.011Z">
 <meta property="article:author" content="Artem Ostashchenko">
-<meta property="article:tag" content="NSIS">
-<meta property="article:tag" content="nsis">
-<meta property="article:tag" content="script">
-<meta property="article:tag" content="Venis_IX">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://ostart.github.io/2021/07/23/venis-IX/venis1.jpg">
   
     <link rel="alternate" href="/atom.xml" title="Artem's Blog" type="application/atom+xml">
   
@@ -90,81 +75,39 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-venis-IX" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/07/23/venis-IX/" class="article-date">
-  <time class="dt-published" datetime="2021-07-23T08:34:07.000Z" itemprop="datePublished">23-07-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
+        <section id="main">
   
-    <h1 class="p-name article-title" itemprop="headline name">
-      Работа с NSIS скриптами в Venis_IX
+  
+    
+    
+      
+      
+      <section class="archives-wrap">
+        <div class="archive-year-wrap">
+          <a href="/archives/2021" class="archive-year">2021</a>
+        </div>
+        <div class="archives">
+    
+    <article class="archive-article archive-type-post">
+  <div class="archive-article-inner">
+    <header class="archive-article-header">
+      <a href="/2021/09/18/enum-is-defined-csharp/" class="archive-article-date">
+  <time class="dt-published" datetime="2021-09-18T06:20:27.000Z" itemprop="datePublished">Sep 18</time>
+</a>
+      
+  
+    <h1 itemprop="name">
+      <a class="archive-article-title" href="/2021/09/18/enum-is-defined-csharp/">Enum.IsDefined и с чем его едят</a>
     </h1>
   
 
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Для редактирования и компиляции NSIS скриптов есть замечательная программа <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis_IX</a>.</p>
-<img src="/2021/07/23/venis-IX/venis1.jpg" class="" title="Venis Main Window">
-
-<p>Для шаблонной генерации скрипта установщика в программе присутствует Venis Install Wizard:</p>
-<img src="/2021/07/23/venis-IX/venis2.jpg" class="" title="Venis Install Wizard">
-
-<p>В основном окне можно создать / открыть скрипт (расширение .nsi), отредактировать его и откомпилировать. Результат компиляции отображается в консольном окне Compile Results. В случае успеха будет показан конечный размер установщика (Total size:) в байтах, как показано на изображении ниже:</p>
-<img src="/2021/07/23/venis-IX/venis3.jpg" class="" title="Venis Compile Results">
-
-<p>В случае ошибки в консоли будет указана причина и строка на которой ошибка случилась.</p>
-<img src="/2021/07/23/venis-IX/venis4.jpg" class="" title="Venis Compile Error">
-
-<p>К сожалению в программе нет привычного разработчикам дебаггера, поэтому отладка скрипта, как правило, осуществляется при его выполнении через всплывающие окна MessageBox или вывод в консоль с помощью DetailPrint.</p>
-<p>Также в программе есть великолепная и подробная справка по языку, командам и макросам NSIS (NSIS User Manual):</p>
-<img src="/2021/07/23/venis-IX/venis5.jpg" class="" title="Venis NSIS Help">
-<p>&nbsp;</p>
-<img src="/2021/07/23/venis-IX/venis6.jpg" class="" title="Venis NSIS User Manual">
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckttwjolm003h7kvsc0y4bxyt" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/script/" rel="tag">script</a></li></ul>
-
-    </footer>
+    </header>
   </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/08/03/pragmatic-programmer/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/07/18/nsis-scripting/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Введение в синтаксис NSIS скриптов</div>
-    </a>
-  
-</nav>
-
-  
 </article>
+  
+  
+    </div></section>
+  
 
 
 </section>
