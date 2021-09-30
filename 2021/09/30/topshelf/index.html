@@ -4,14 +4,21 @@
   <meta charset="utf-8">
   
   
-  <title>Tag: net5.0 | Artem&#39;s Blog</title>
+  <title>Разрабатываем Windows-службы с помощью TopShelf | Artem&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Artem&#39;s Blog">
-<meta property="og:url" content="https://ostart.github.io/tags/net5-0/index.html">
+  <meta name="description" content="Все, кто сталкивались с разработкой служб для операционной системы Windows, отмечали трудность отладки подобного ПО. Трудности старта разработки кода решаются шаблонами Visual Studio для Windows-служб">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Разрабатываем Windows-службы с помощью TopShelf">
+<meta property="og:url" content="https://ostart.github.io/2021/09/30/topshelf/index.html">
 <meta property="og:site_name" content="Artem&#39;s Blog">
+<meta property="og:description" content="Все, кто сталкивались с разработкой служб для операционной системы Windows, отмечали трудность отладки подобного ПО. Трудности старта разработки кода решаются шаблонами Visual Studio для Windows-служб">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-09-30T13:05:13.000Z">
+<meta property="article:modified_time" content="2021-09-30T14:59:58.401Z">
 <meta property="article:author" content="Artem Ostashchenko">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="TopShelf">
+<meta property="article:tag" content="Windows-service">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Artem's Blog" type="application/atom+xml">
@@ -75,39 +82,68 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/09/17/add-csharp-nuget-package-vscode/" class="archive-article-date">
-  <time class="dt-published" datetime="2021-09-17T10:24:36.000Z" itemprop="datePublished">Sep 17</time>
+        <section id="main"><article id="post-topshelf" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/09/30/topshelf/" class="article-date">
+  <time class="dt-published" datetime="2021-09-30T13:05:13.000Z" itemprop="datePublished">30-09-2021</time>
 </a>
-      
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/09/17/add-csharp-nuget-package-vscode/">Добавляем из терминала VSCode NuGet пакеты в C# проект</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      Разрабатываем Windows-службы с помощью TopShelf
     </h1>
   
 
-    </header>
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Все, кто сталкивались с разработкой служб для операционной системы Windows, отмечали трудность отладки подобного ПО. Трудности старта разработки кода решаются шаблонами Visual Studio для Windows-служб, но вот сама отладка – очень неудобная. Приходится подключаться к запущеному процессу через Debug –&gt; Attach to Process… , выбирать процесс, ставить точку останова и т.д. Но всё изменилось когда появился <a target="_blank" rel="noopener" href="http://topshelf-project.com/">TopShelf</a>. Этот фреймворк (<em>а именно так они себя величают</em>) позволяет разрабатывать и отлаживать Windows-службы как обычные консольные приложения!</p>
+<p>Рассмотрим как разрабатывать Windows-службы с помощью <a target="_blank" rel="noopener" href="http://docs.topshelf-project.com/en/latest/">TopShelf</a>.</p>
+<p>Установить TopShelf в ваш проект можно через менеджер пакетов NuGet:</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nuget <span class="built_in">Install-Package</span> Topshelf</span><br></pre></td></tr></table></figure>
+
+<p>Посмотреть исходный код фреймворка <strong>TopShelf</strong> можно на <a target="_blank" rel="noopener" href="https://github.com/Topshelf/Topshelf">GitHub</a></p>
+<p>Основной класс (в нашем случае <em>KmAuthApiService</em>) должен содержать методы <code>public void Start()</code> и <code>public void Stop()</code>, которые используются TopShelf при старте и остановке службы. В моём случае файл <em>Program.cs</em> же будет иметь следующий вид:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Topshelf;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="built_in">string</span> ServiceName = <span class="string">&quot;KonicaMinolta Authentication and WebAPI service&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        HostFactory.Run(config =&gt;</span><br><span class="line">        &#123;</span><br><span class="line">            config.EnableShutdown();</span><br><span class="line">            config.Service&lt;KmAuthApiService&gt;(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.ConstructUsing(svc =&gt; <span class="keyword">new</span> KmAuthApiService());</span><br><span class="line">                service.WhenStarted(svc =&gt; svc.Start());</span><br><span class="line">                service.WhenStopped(svc =&gt; svc.Stop());</span><br><span class="line">            &#125;);</span><br><span class="line">            config.RunAsLocalSystem();</span><br><span class="line">            config.SetServiceName(ServiceName);</span><br><span class="line">            config.SetDisplayName(ServiceName);</span><br><span class="line">            config.SetDescription(ServiceName);</span><br><span class="line">        &#125;);                                          </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Всю магию делает метод <em>HostFactory.Run</em>. В нём указывается класс основного тела службы с методами <em>Start</em> и <em>Stop</em>, задаётся имя службы и описание в менеджере служб Windows (<em>Services</em>). <strong>TopShelf</strong> позволяет провести почти такую же настройку режима работы службы, которую выполняет менеджер служб Windows, в частности задать из под кого будет запускаться служба <code>RunAsLocalSystem</code> или задать параметры перезапуска в случае падения службы с помощью <code>EnableServiceRecovery</code>.</p>
+<p>Установить службу в операционную систему Windows можно из командной строки, запущенной от Администратора, командой: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc create &quot;KonicaMinolta Authentication and WebAPI service&quot; binPath=&quot;&lt;путь_к_службе&gt;\KMAuthService.exe&quot;</span><br></pre></td></tr></table></figure>
+
+<p>Удалить службу можно командой:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc delete &quot;KonicaMinolta Authentication and WebAPI service&quot;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="cku72fks1003jg8vscp228bhc" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
+
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/09/18/enum-is-defined-csharp/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Enum.IsDefined и его самодельная альтернатива</div>
+    </a>
+  
+</nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
 
 
 </section>
