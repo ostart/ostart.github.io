@@ -105,19 +105,26 @@
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nuget <span class="built_in">Install-Package</span> Topshelf</span><br></pre></td></tr></table></figure>
 
 <p>Посмотреть исходный код фреймворка <strong>TopShelf</strong> можно на <a target="_blank" rel="noopener" href="https://github.com/Topshelf/Topshelf">GitHub</a></p>
-<p>Основной класс (в нашем случае <em>KmAuthApiService</em>) должен содержать методы <code>public void Start()</code> и <code>public void Stop()</code>, которые используются TopShelf при старте и остановке службы. В моём случае файл <em>Program.cs</em> же будет иметь следующий вид:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Topshelf;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="built_in">string</span> ServiceName = <span class="string">&quot;KonicaMinolta Authentication and WebAPI service&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        HostFactory.Run(config =&gt;</span><br><span class="line">        &#123;</span><br><span class="line">            config.EnableShutdown();</span><br><span class="line">            config.Service&lt;KmAuthApiService&gt;(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.ConstructUsing(svc =&gt; <span class="keyword">new</span> KmAuthApiService());</span><br><span class="line">                service.WhenStarted(svc =&gt; svc.Start());</span><br><span class="line">                service.WhenStopped(svc =&gt; svc.Stop());</span><br><span class="line">            &#125;);</span><br><span class="line">            config.RunAsLocalSystem();</span><br><span class="line">            config.SetServiceName(ServiceName);</span><br><span class="line">            config.SetDisplayName(ServiceName);</span><br><span class="line">            config.SetDescription(ServiceName);</span><br><span class="line">        &#125;);                                          </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Основной класс (в нашем случае <em>AuthApiService</em>) должен содержать методы <code>public void Start()</code> и <code>public void Stop()</code>, которые используются <strong>TopShelf</strong> при старте и остановке службы. В моём случае файл <em>Program.cs</em> же будет иметь следующий вид:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Topshelf;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="built_in">string</span> ServiceName = <span class="string">&quot;Authentication and WebAPI service&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        HostFactory.Run(config =&gt;</span><br><span class="line">        &#123;</span><br><span class="line">            config.StartAutomatically(); <span class="comment">// startup type</span></span><br><span class="line">            config.EnableShutdown();</span><br><span class="line">            config.Service&lt;AuthApiService&gt;(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.ConstructUsing(svc =&gt; <span class="keyword">new</span> AuthApiService());</span><br><span class="line">                service.WhenStarted(svc =&gt; svc.Start());</span><br><span class="line">                service.WhenStopped(svc =&gt; svc.Stop());</span><br><span class="line">            &#125;);</span><br><span class="line">            config.RunAsLocalSystem();</span><br><span class="line">            config.SetServiceName(ServiceName);</span><br><span class="line">            config.SetDisplayName(ServiceName);</span><br><span class="line">            config.SetDescription(ServiceName);</span><br><span class="line">            config.EnableServiceRecovery(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.OnCrashOnly();</span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// first failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// second failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">1</span>); <span class="comment">// subsequent failures</span></span><br><span class="line">                service.SetResetPeriod(days: <span class="number">1</span>); <span class="comment">// reset period for restart options</span></span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);                                          </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>Всю магию делает метод <em>HostFactory.Run</em>. В нём указывается класс основного тела службы с методами <em>Start</em> и <em>Stop</em>, задаётся имя службы и описание в менеджере служб Windows (<em>Services</em>). <strong>TopShelf</strong> позволяет провести почти такую же настройку режима работы службы, которую выполняет менеджер служб Windows, в частности задать из под кого будет запускаться служба <code>RunAsLocalSystem</code> или задать параметры перезапуска в случае падения службы с помощью <code>EnableServiceRecovery</code>.</p>
-<p>Установить службу в операционную систему Windows можно из командной строки, запущенной от Администратора, командой: </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc create &quot;KonicaMinolta Authentication and WebAPI service&quot; binPath=&quot;&lt;путь_к_службе&gt;\KMAuthService.exe&quot;</span><br></pre></td></tr></table></figure>
+<p>Установить службу в операционную систему Windows можно из командной строки, запущенной от Администратора, прямо в папке где находится служба командой: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KMAuthService.exe install</span><br></pre></td></tr></table></figure>
 
 <p>Удалить службу можно командой:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc delete &quot;KonicaMinolta Authentication and WebAPI service&quot;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KMAuthService.exe uninstall</span><br></pre></td></tr></table></figure>
+
+<p>Всю магию установки и настройки службы берёт на себя <strong>Topshelf</strong>! </p>
+<p>Службу можно установить и самостоятельно, но тогда настройки из раздела <code>EnableServiceRecovery</code> применены не будут.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc create &quot;Authentication and WebAPI service&quot; binPath=&quot;&lt;путь_к_службе&gt;\AuthService.exe&quot;</span><br></pre></td></tr></table></figure>
+
+<p>Удалить службу самостоятельно можно командой:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc delete &quot;Authentication and WebAPI service&quot;</span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="cku72fks1003jg8vscp228bhc" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckuau5bf7000svovsersab7jb" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Share</a>
       
       
       
@@ -174,7 +181,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="cku72fkqw0007g8vsefxthtnz" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckuau5bes0004vovs19fofhb8" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Share</a>
       
       
       
@@ -223,7 +230,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="cku72fkqj0000g8vs2sly2fzq" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckuau5bei0000vovscd62dvcp" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
       
       
       
@@ -275,7 +282,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="cku72fkqx0008g8vsc2gf6g4q" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckuau5bet0005vovs1e5rhvk8" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
       
       
       
@@ -326,7 +333,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="cku72fkqs0003g8vs1zkq8bkr" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckuau5ber0003vovs41sfe942" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
       
       
       
@@ -373,7 +380,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="cku72fkqz000bg8vseg3y4ggp" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckuau5bez000evovs5sil8ybu" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
       
       
       
@@ -429,7 +436,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="cku72fkqv0005g8vs5po75x0x" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckuau5bev0008vovsaom32tjn" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Share</a>
       
       
       
@@ -489,7 +496,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="cku72fkqt0004g8vsf82m2bf6" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckuau5beu0007vovs55pq56mt" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
       
       
       
@@ -531,7 +538,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="cku72fkr6000ig8vsfvw0cukd" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckuau5bf3000lvovs4v310ia9" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
       
       
       
@@ -575,7 +582,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="cku72fkr9000pg8vs81m774e0" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckuau5bf5000pvovs858m6jc8" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
       
       
       
