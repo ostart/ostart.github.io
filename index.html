@@ -99,7 +99,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Всем хорош подход FluentApi при выполнении запросов в LINQ, но одна вещь ему не по зубам. Это выполнение Left Join запросов. Но SQL-style запросы в LINQ позволяют решить данную проблему.</p>
+        <p>Всем хорош подход FluentApi при выполнении запросов в LINQ, но одна вещь ему не по зубам. Это выполнение удобных Left Join запросов. Но SQL-style запросы в LINQ позволяют решить данную проблему.</p>
 <p>Конструкция join в LINQ даёт INNER JOIN соединение таблиц (если проводить аналогию с SQL). А для LEFT JOIN рассмотрим код, показывающий как решить данную проблему в LINQ:</p>
 <figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> salesProducts = </span><br><span class="line">(</span><br><span class="line">    <span class="keyword">from</span> product <span class="keyword">in</span> context.Products</span><br><span class="line">    <span class="keyword">join</span> person <span class="keyword">in</span> context.<span class="function">SalesPeople <span class="title">on</span></span></span><br><span class="line"><span class="function">    (<span class="params">product.Region, product.Type</span>)</span></span><br><span class="line"><span class="function">    <span class="title">equals</span></span></span><br><span class="line"><span class="function">    (<span class="params">person.Region, person.ProductType</span>)</span></span><br><span class="line"><span class="function">    <span class="keyword">into</span> productPeople</span></span><br><span class="line"><span class="function">    <span class="keyword">from</span> productPerson <span class="keyword">in</span> productPeople.<span class="title">DefaultIfEmpty</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    <span class="keyword">select</span> <span class="keyword">new</span></span> </span><br><span class="line">    &#123;</span><br><span class="line">        Person = productPerson?.Name ?? <span class="built_in">string</span>.Empty,</span><br><span class="line">        Product = product.Name,</span><br><span class="line">        product.Region,</span><br><span class="line">        product.Type</span><br><span class="line">    &#125;</span><br><span class="line">).ToList();</span><br></pre></td></tr></table></figure>
 
@@ -108,7 +108,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckw4ohmzd000g4gvs8c5phwbb" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckw4omgeo000gb0vsfa6l5y5v" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Share</a>
       
       
       
@@ -153,7 +153,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckw4ohmzl000r4gvs1ipke876" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckw4omgev000rb0vse60hflvz" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Share</a>
       
       
       
@@ -240,7 +240,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckw4ohmz200074gvs46rphcqx" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckw4omgef0007b0vs92sh1ndl" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Share</a>
       
       
       
@@ -295,7 +295,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckw4ohmzj000n4gvs6lf82bza" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckw4omget000nb0vsgtso25dz" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Share</a>
       
       
       
@@ -356,7 +356,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckw4ohn0y004u4gvsb6pn4j9u" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckw4omgg5004lb0vsdvweb9k3" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Share</a>
       
       
       
@@ -413,7 +413,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckw4ohmz6000a4gvs2kbzd0yt" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckw4omgeh000ab0vs65349iys" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Share</a>
       
       
       
@@ -462,7 +462,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckw4ohmyi00004gvshkhedmp5" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckw4omgdv0000b0vsbopn6dql" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Share</a>
       
       
       
@@ -514,7 +514,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckw4ohmz400084gvsano1c2fv" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckw4omgeg0008b0vsabgoa8er" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Share</a>
       
       
       
@@ -565,7 +565,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckw4ohmyt00034gvs93s62z1a" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckw4omge00001b0vs4nvu7ptn" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Share</a>
       
       
       
@@ -612,7 +612,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckw4ohmzb000e4gvs2ij3gvey" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckw4omgel000db0vsf2bh6jmu" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Share</a>
       
       
       
