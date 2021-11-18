@@ -77,6 +77,62 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-clearscript" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/09/07/clearscript/" class="article-date">
+  <time class="dt-published" datetime="2021-09-07T13:14:06.000Z" itemprop="datePublished">07-09-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/09/07/clearscript/">ClearScript. Добавь скрипты в своё .NET приложение</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Были времена, когда обработку скриптов в .NET реализовывали проекты <a target="_blank" rel="noopener" href="https://ironpython.net/">IronPython</a> и <a target="_blank" rel="noopener" href="http://ironruby.net/">IronRuby</a>. IronRuby уже умер, IronPython ещё жив, но надо признать, что не набрал популярности несмотря на солидный возраст. Если вам требуется использовать сценарии в своём .NET приложении обратите внимание на ClearScript.</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Microsoft/ClearScript">ClearScript</a> - это библиотека, которая с лёгкостью добавит сценарии на JavaScript (через V8 и JScript) или VBScript в ваше .NET приложение. ClearScript поддерживает несколько видов движков: Google’s V8, Microsoft’s JScript и VBScript. Посредством ClearScript можно запускать JavaScript сценарии как в старом CommonJS, так и в новой ES6 стандарте, причем сценарии будут работать как в Windows, Linux, так и macOS. Количество поддержанных фишек для разных движков несколько различается, но V8 содержит их в максимальном количестве. ClearScript доступен в виде NuGet пакетов для соответствующих платформ.</p>
+<p>Для работы с ClearScript требуется подключить следующие пространства имён:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Microsoft.ClearScript;</span><br><span class="line"><span class="keyword">using</span> Microsoft.ClearScript.JavaScript;</span><br><span class="line"><span class="keyword">using</span> Microsoft.ClearScript.V8;</span><br></pre></td></tr></table></figure>
+
+<p>Создать и инициализировать движок скриптов (если не требуется возможность отладки, то V8ScriptEngineFlags.EnableDebugging убрать, оставив просто <strong>new()</strong> ):</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> V8ScriptEngine Engine =&gt; <span class="keyword">new</span>(V8ScriptEngineFlags.EnableDebugging)</span><br><span class="line">&#123;</span><br><span class="line">    DocumentSettings =</span><br><span class="line">    &#123;</span><br><span class="line">        AccessFlags = DocumentAccessFlags.EnableFileLoading,</span><br><span class="line">        SearchPath = Path.GetDirectoryName(<span class="keyword">typeof</span>(MyTests).Assembly.Location)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>Запуск вычислений в сценарии на JS приводится ниже:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> result = Engine.Evaluate(</span><br><span class="line">    <span class="keyword">new</span> DocumentInfo &#123;Category = ModuleCategory.Standard&#125;, </span><br><span class="line">    <span class="string">$&quot;<span class="subst">&#123;_jsModuleContent&#125;</span> <span class="subst">&#123;PdpFunctionName&#125;</span>(<span class="subst">&#123;JsonSerializer.Serialize(initialDevice)&#125;</span>)&quot;</span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">var</span> resultDevice = JsonSerializer.Deserialize&lt;Device&gt;(result.ToString());</span><br></pre></td></tr></table></figure>
+
+<p><em>Category = ModuleCategory.Standard</em> означает, что текст сценария написан на ES6 (const, let, import, etc). <em>Category = ModuleCategory.CommonJS</em> - старый формат JS, понимающий только var и require. Из примера видно, что текстовый аргумент представляет из себя содержимое сценария и вызов JS функции с передачей ей в качестве аргумента сериализованного объекта JSON. В качестве результата возвращается экземпляр класса Object, который требуется десериализовать к нужному классу с помощью JsonSerializer.Deserialize. Таким образом, с помощью загрузки и исполнения JavaScript сценария можно динамически управлять выполняющимися инструкциями функции PdpFunctionName!</p>
+<p>Удивительно, что можно подгружать классы .NET в движок ClearScript (в том числе даты, дженерики и LINQ) и использовать их для вычислений:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> (<span class="keyword">var</span> engine = <span class="keyword">new</span> V8ScriptEngine()) <span class="comment">// создание движка</span></span><br><span class="line">&#123;</span><br><span class="line">    engine.AddHostType(<span class="string">&quot;Console&quot;</span>, <span class="keyword">typeof</span>(Console)); <span class="comment">// прокинуть тип в движок</span></span><br><span class="line">    engine.Execute(<span class="string">&quot;Console.WriteLine(&#x27;&#123;0&#125; is an interesting number.&#x27;, Math.PI)&quot;</span>); <span class="comment">// 3.14159265358979 is an interesting number.</span></span><br><span class="line"></span><br><span class="line">    engine.AddHostObject(<span class="string">&quot;random&quot;</span>, <span class="keyword">new</span> Random()); <span class="comment">// прокинуть объект в движок</span></span><br><span class="line">    engine.Execute(<span class="string">&quot;Console.WriteLine(random.NextDouble())&quot;</span>); <span class="comment">// 0.715555223503874</span></span><br><span class="line"></span><br><span class="line">    engine.AddHostObject(<span class="string">&quot;lib&quot;</span>, <span class="keyword">new</span> HostTypeCollection(<span class="string">&quot;mscorlib&quot;</span>, <span class="string">&quot;System.Core&quot;</span>)); <span class="comment">// прокидываем целую сборку</span></span><br><span class="line">    engine.Execute(<span class="string">&quot;Console.WriteLine(lib.System.DateTime.Now)&quot;</span>); <span class="comment">// 5/11/2017 12:15:32 PM</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// создаем хост-объект прямо из скрипта</span></span><br><span class="line">    engine.Execute(<span class="string">@&quot;</span></span><br><span class="line"><span class="string">        birthday = new lib.System.DateTime(2007, 5, 22);</span></span><br><span class="line"><span class="string">        Console.WriteLine(birthday.ToLongDateString());</span></span><br><span class="line"><span class="string">    &quot;</span>); <span class="comment">// Tuesday, May 22, 2007</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// используем дженерик класс словаря прямо из скрипта</span></span><br><span class="line">    engine.Execute(<span class="string">@&quot;</span></span><br><span class="line"><span class="string">        Dictionary = lib.System.Collections.Generic.Dictionary;</span></span><br><span class="line"><span class="string">        dict = new Dictionary(lib.System.String, lib.System.Int32);</span></span><br><span class="line"><span class="string">        dict.Add(&#x27;foo&#x27;, 123);</span></span><br><span class="line"><span class="string">    &quot;</span>);</span><br><span class="line"></span><br><span class="line">    engine.AddHostObject(<span class="string">&quot;host&quot;</span>, <span class="keyword">new</span> HostFunctions()); <span class="comment">// вызываем хост-метод с out параметром</span></span><br><span class="line">    engine.Execute(<span class="string">@&quot;</span></span><br><span class="line"><span class="string">        intVar = host.newVar(lib.System.Int32);</span></span><br><span class="line"><span class="string">        found = dict.TryGetValue(&#x27;foo&#x27;, intVar.out);</span></span><br><span class="line"><span class="string">        Console.WriteLine(&#x27;&#123;0&#125; &#123;1&#125;&#x27;, found, intVar);</span></span><br><span class="line"><span class="string">    &quot;</span>); <span class="comment">// True 123</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// создаем и перебираем хост массив</span></span><br><span class="line">    engine.Execute(<span class="string">@&quot;</span></span><br><span class="line"><span class="string">        numbers = host.newArr(lib.System.Int32, 20);</span></span><br><span class="line"><span class="string">        for (var i = 0; i &lt; numbers.Length; i++) &#123; numbers[i] = i; &#125;</span></span><br><span class="line"><span class="string">        Console.WriteLine(lib.System.String.Join(&#x27;, &#x27;, numbers));</span></span><br><span class="line"><span class="string">    &quot;</span>); <span class="comment">// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// создаем в сценарии делегат</span></span><br><span class="line">    engine.Execute(<span class="string">@&quot;</span></span><br><span class="line"><span class="string">        Filter = lib.System.Func(lib.System.Int32, lib.System.Boolean);</span></span><br><span class="line"><span class="string">        oddFilter = new Filter(function(value) &#123;</span></span><br><span class="line"><span class="string">            return (value &amp; 1) ? true : false;</span></span><br><span class="line"><span class="string">        &#125;);</span></span><br><span class="line"><span class="string">    &quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// используем LINQ из скрипта</span></span><br><span class="line">    engine.Execute(<span class="string">@&quot;</span></span><br><span class="line"><span class="string">        oddNumbers = numbers.Where(oddFilter);</span></span><br><span class="line"><span class="string">        Console.WriteLine(lib.System.String.Join(&#x27;, &#x27;, oddNumbers));</span></span><br><span class="line"><span class="string">    &quot;</span>); <span class="comment">// 1, 3, 5, 7, 9, 11, 13, 15, 17, 19</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// используем динамический хост объект</span></span><br><span class="line">    engine.Execute(<span class="string">@&quot;</span></span><br><span class="line"><span class="string">        expando = new lib.System.Dynamic.ExpandoObject();</span></span><br><span class="line"><span class="string">        expando.foo = 123;</span></span><br><span class="line"><span class="string">        expando.bar = &#x27;qux&#x27;;</span></span><br><span class="line"><span class="string">        delete expando.foo;</span></span><br><span class="line"><span class="string">    &quot;</span>);</span><br><span class="line"></span><br><span class="line">    engine.Execute(<span class="string">&quot;function print(x) &#123; Console.WriteLine(x); &#125;&quot;</span>); <span class="comment">// создаем и затем вызываем функцию из скрипта</span></span><br><span class="line">    engine.Script.print(DateTime.Now.DayOfWeek); <span class="comment">// Thursday</span></span><br><span class="line"></span><br><span class="line">    engine.Execute(<span class="string">&quot;person = &#123; name: &#x27;Fred&#x27;, age: 5 &#125;&quot;</span>);  <span class="comment">// создадим из скрипта объект</span></span><br><span class="line">    Console.WriteLine(engine.Script.person.name); <span class="comment">// Fred</span></span><br><span class="line"></span><br><span class="line">    engine.Execute(<span class="string">&quot;values = new Int32Array([1, 2, 3, 4, 5])&quot;</span>); <span class="comment">// создадим в скрипте типизированный массив</span></span><br><span class="line">    <span class="keyword">var</span> values = (ITypedArray&lt;<span class="built_in">int</span>&gt;)engine.Script.values; <span class="comment">// считаем и преобразуем из Object значения массива</span></span><br><span class="line">    Console.WriteLine(<span class="built_in">string</span>.Join(<span class="string">&quot;, &quot;</span>, values.ToArray())); <span class="comment">// 1, 2, 3, 4, 5</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Отличный <a target="_blank" rel="noopener" href="https://microsoft.github.io/ClearScript/Tutorial/FAQtorial.html">ClearScript Tutorial</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckw4ohmyz00044gvsh1889v2v" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-concurrency-with-httpclient" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/08/22/concurrency-with-httpclient/" class="article-date">
@@ -123,7 +179,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckw4lw9bz00057wvs8hq2buen" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckw4ohmz000054gvsdjs63lfk" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Share</a>
       
       
       
@@ -165,7 +221,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckw4lw9ch000r7wvs2nwyc7rm" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckw4ohmzm000s4gvsef3q62hb" data-title="Простой SNMP сервер на C#" class="article-share-link">Share</a>
       
       
       
@@ -209,7 +265,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckw4lw9ck000u7wvs54yo9ed1" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckw4ohmzp000v4gvs7ldw4maa" data-title="Структура SNMP ответа get-response" class="article-share-link">Share</a>
       
       
       
@@ -253,7 +309,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckw4lw9ci000s7wvs3axuhnsf" data-title="Структура SNMP запроса get-request" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckw4ohmzn000u4gvshu43dlbs" data-title="Структура SNMP запроса get-request" class="article-share-link">Share</a>
       
       
       
@@ -399,7 +455,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckw4lw9cg000p7wvshjlucmqo" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckw4ohmzk000p4gvs5tap4qip" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Share</a>
       
       
       
@@ -457,7 +513,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckw4lw9dw004g7wvshkwt81o0" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckw4ohmzw00124gvs7m9jeoxd" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Share</a>
       
       
       
@@ -535,7 +591,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckw4lw9c9000g7wvs4lar68jr" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckw4ohmzi000l4gvs1ni756nb" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Share</a>
       
       
       
@@ -603,7 +659,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckw4lw9c8000e7wvs528mhr82" data-title="О NSIS" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckw4ohmzg000i4gvshryx6vca" data-title="О NSIS" class="article-share-link">Share</a>
       
       
       
@@ -655,78 +711,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckw4lw9cl000v7wvsalixh0dv" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckw4ohmzt000x4gvsaizg66hw" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Share</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-snmpsim" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/22/snmpsim/" class="article-date">
-  <time class="dt-published" datetime="2021-06-22T04:11:57.000Z" itemprop="datePublished">22-06-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/22/snmpsim/">SnmpSim. Запускаем в Windows</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Как сообщает Википедия, <a target="_blank" rel="noopener" href="https://ru.wikipedia.org/wiki/SNMP">SNMP</a> (англ. Simple Network Management Protocol — простой протокол сетевого управления) — стандартный интернет-протокол для управления устройствами в IP-сетях на основе архитектур TCP/UDP. К поддерживающим SNMP устройствам относятся маршрутизаторы, коммутаторы, серверы, рабочие станции, принтеры, модемные стойки и другие. Протокол обычно используется в системах сетевого управления для контроля подключённых к сети устройств на предмет условий, которые требуют внимания администратора.</p>
-<p>Касательно принтеров возможен опрос их характеристик по SNMP-протоколу, например: количество отпечатанных листов разных форматов, количество оставшегося ресурса фотобарабана и т.д.<br>Иногда требуется симулировать ответы устройства по SNMP для целей тестирования, в том числе нагрузочного.</p>
-<p>В вопросе симуляции ответов SNMP устройств отличным помощником выступает <a target="_blank" rel="noopener" href="https://github.com/etingof/snmpsim">SNMP Simulator</a>, который сам себя характеризует как pure-Python, open source and free implementation of SNMP agents simulator. Исходные коды симулятора расположены на Github по адресу: <a target="_blank" rel="noopener" href="https://github.com/etingof/snmpsim">https://github.com/etingof/snmpsim</a></p>
-<p>Для функционирования симулятора потребуется Python любой версии из ряда: 2.4, 2.5, 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7. Скачать его можно отсюда: <a target="_blank" rel="noopener" href="https://www.python.org/downloads/">https://www.python.org/downloads/</a></p>
-<p>Для установки симулятора введите команду в терминале (PowerShell, CommandPrompt):</p>
-<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$</span> pip install snmpsim</span><br></pre></td></tr></table></figure>
-
-<p>Далее для симуляции потребуется текстовый файл public.snmprec, содержащий в каждой отдельной строке:</p>
-<p>OID|тип_значения|значение</p>
-<p>Например:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1.3.6.1.2.1.1.1.0|4|Linux 2.6.25.5-smp SMP Tue Jun 19 14:58:11 CDT 2007 i686</span><br><span class="line">1.3.6.1.2.1.1.2.0|6|1.3.6.1.4.1.8072.3.2.10</span><br><span class="line">1.3.6.1.2.1.1.3.0|67|233425120</span><br><span class="line">1.3.6.1.2.1.2.2.1.6.2|4x|00127962f940</span><br><span class="line">1.3.6.1.2.1.4.22.1.3.2.192.21.54.7|64x|c3dafe61</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>Для симуляции ответов принтера используйте <strong>тип_значения</strong> равным <strong>4</strong>, что означает <strong>OctetString</strong>.</p>
-<p>Я использовал, в частности, файл public.snmprec такого вида:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1.3.6.1.2.1.43.5.1.1.17.1|4|A7980275412</span><br><span class="line">1.3.6.1.2.1.25.3.2.1.3.1|4|KONICA MINOLTA bizhub C227</span><br><span class="line">1.3.6.1.4.1.18334.1.1.1.5.7.2.3.1.5.1|4|735</span><br><span class="line">1.3.6.1.4.1.18334.1.1.1.5.7.2.2.1.5.2.1|4|190</span><br><span class="line">1.3.6.1.4.1.18334.1.1.1.5.7.2.2.1.5.1.1|4|5</span><br></pre></td></tr></table></figure>
-
-<p>При запуске симулятор будет искать файл, симулирующий ответы public.snmprec, по нескольким путям, но я рекомендую разместить public.snmprec в папке: </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\&#123;userName&#125;\SNMP Simulator\Data</span><br></pre></td></tr></table></figure>
-
-<p>Запустить симулятор можно из терминала командой:</p>
-<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">snmpsimd.py --data-<span class="built_in">dir</span>=./data --agent-udpv4-endpoint=<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span>:<span class="number">161</span></span><br></pre></td></tr></table></figure>
-
-<p>Симулятор будет слушать 161 порт и отвечать на входящие OID значением из файла public.snmprec, если оно там присутствует.</p>
-<p>Проверить обмен с симулятором можно с помощью программы <a target="_blank" rel="noopener" href="https://www.ireasoning.com/mibbrowser.shtml">MIB Browser</a></p>
-<img src="/2021/06/22/snmpsim/mib-browser.jpg" class="" title="MIB Browser">
-
-<p>Ну вот и всё! Спасибо <a href="mailto:etingof@gmail.com">Ilya Etingof</a> за зачётный симулятор!</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckw4lw9cq000x7wvs36xz7tsq" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li></ul>
 
     </footer>
   </div>
@@ -754,7 +743,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
     </div>
   </div>
 
@@ -764,7 +753,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 13.33px;">Windows-service</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 10px;">LINQ</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 13.33px;">Windows-service</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -786,6 +775,10 @@
       <ul>
         
           <li>
+            <a href="/2021/11/18/left-join/">Выполнение Left Join запросов в LINQ</a>
+          </li>
+        
+          <li>
             <a href="/2021/11/18/progressive-delay-pattern/">Шаблон увеличивающегося интервала повторения запроса</a>
           </li>
         
@@ -799,10 +792,6 @@
         
           <li>
             <a href="/2021/09/30/topshelf/">Разрабатываем Windows-службы с помощью TopShelf</a>
-          </li>
-        
-          <li>
-            <a href="/2021/09/18/enum-is-defined-csharp/">Enum.IsDefined и его самодельная альтернатива</a>
           </li>
         
       </ul>
