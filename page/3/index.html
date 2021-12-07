@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   
   
-  <title>Artem&#39;s Blog</title>
+  <title>Artemio&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta property="og:type" content="website">
-<meta property="og:title" content="Artem&#39;s Blog">
+<meta property="og:title" content="Artemio&#39;s Blog">
 <meta property="og:url" content="https://ostart.github.io/page/3/index.html">
-<meta property="og:site_name" content="Artem&#39;s Blog">
-<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Artemio&#39;s Blog">
+<meta property="og:locale" content="ru_RU">
 <meta property="article:author" content="Artem Ostashchenko">
 <meta name="twitter:card" content="summary">
   
-    <link rel="alternate" href="/atom.xml" title="Artem's Blog" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title="Artemio's Blog" type="application/atom+xml">
   
   
     <link rel="shortcut icon" href="/favicon.png">
@@ -42,11 +42,11 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">Artem&#39;s Blog</a>
+        <a href="/" id="logo">Artemio&#39;s Blog</a>
       </h1>
       
         <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">Hi, I&#39;m Artem Ostashchenko, a software developer. I write this blog</a>
+          <a href="/" id="subtitle">Hi, I&#39;m Artem Ostashchenko, a software developer. I write this blog in Russian</a>
         </h2>
       
     </div>
@@ -63,12 +63,12 @@
       </nav>
       <nav id="sub-nav">
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS-каналы"></a>
         
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+        <a id="nav-search-btn" class="nav-icon" title="Поиск"></a>
       </nav>
       <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://ostart.github.io"></form>
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Поиск"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://ostart.github.io"></form>
       </div>
     </div>
   </div>
@@ -76,6 +76,126 @@
 
       <div class="outer">
         <section id="main">
+  
+    <article id="post-nsis-intro" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/17/nsis-intro/" class="article-date">
+  <time class="dt-published" datetime="2021-07-17T10:41:09.000Z" itemprop="datePublished">17-07-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/17/nsis-intro/">О NSIS</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Если вам однажды потребуется изготовить установщик для Windows, то обратите внимание на <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/">NSIS (Nullsoft Scriptable Install System)</a>. NSIS - это профессиональная система с открытым исходным кодом, компактная и гибкая. У неё есть свои минусы (низкоуровневый синтаксис языка скриптов NSIS, включающий работу с регистрами, макросы и т.п.), но плюсы, как правило, их перевешивают. </p>
+<h3 id="К-основным-плюсам-можно-отнести"><a href="#К-основным-плюсам-можно-отнести" class="headerlink" title="К основным плюсам можно отнести:"></a>К основным плюсам можно отнести:</h3><ul>
+<li>сверх компактный размер (оверхэд самого NSIS всего 34 KB)</li>
+<li>совместимость с основными версиями ОС: Windows 95, Windows 98, Windows ME, Windows NT, Windows 2000, Windows XP, Windows Server 2003, Windows Vista, Windows Sever 2008, Windows 7, Windows Server 2008R2, Windows 8, Windows Server 2012, Windows 8.1, Windows Server 2012R2, Windows Server 2016 и Windows 10</li>
+<li>большое количество плагинов, позволяющих реализовать почти все задумки</li>
+<li>безоплатность</li>
+<li>стабильность</li>
+<li>многоязычность (в одном установщике до 60-ти языков)</li>
+<li>создание пользовательских диалоговых окон</li>
+<li>создание собственных плагинов (C, C++, Delphi)</li>
+</ul>
+<p>Плагины включают в себя взаимодействие с БД, реестром, папками и файлами, переменными окружения, Windows службами, IIS, командной строкой, Powershell, Win32 API вызовы, перезагрузку системы, интернет соединения, создание ярлыков, деинсталляторов и многое многое другое.</p>
+<p>Взаимодействие с NSIS основано на скриптах (на собственном языке программирования, базовый синтаксис которого описан в <a href="">посте</a>), которые собираются в Windows установщик. NSIS до сих пор поддерживается (последний релиз NSIS 3.06.1 от 31 июля 2020), имеет большое сообщество и массу туториалов.</p>
+<h3 id="Структура-скрипта"><a href="#Структура-скрипта" class="headerlink" title="Структура скрипта:"></a>Структура скрипта:</h3><ul>
+<li>Атрибуты установщика (Константы: WINDIR, SYSDIR, INSTDIR, PROGRAMFILES … Атрибуты: BrandingText, Caption, Icon …)</li>
+<li>Страницы (лицензия, компоненты, выбор директории, подтверждение деинсталляции …)</li>
+<li>Секции (установка, деинсталляция …)</li>
+<li>Функции (.onInit, un.onInit, .onGUIInit, .onInstSuccess, .onInstFailed, .onMouseOverSection …)</li>
+</ul>
+<p>Подробнее с синтаксисом NSIS можно ознакомиться тут: <a href="https://ostart.github.io/2021/07/18/nsis-scripting/">Введение в синтаксис NSIS скриптов</a></p>
+<p>Пример простого NSIS скрипта:</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">!include</span> <span class="string">&quot;MUI2.nsh&quot;</span></span><br><span class="line"><span class="keyword">!include</span> LogicLib.nsh</span><br><span class="line"></span><br><span class="line"><span class="keyword">Name</span> <span class="string">&quot;SectionTest&quot;</span></span><br><span class="line"><span class="keyword">OutFile</span> <span class="string">&quot;SectionTest.exe&quot;</span></span><br><span class="line"><span class="keyword">ShowInstDetails</span> <span class="literal">show</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_PAGE_COMPONENTS</span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_PAGE_INSTFILES</span><br><span class="line"><span class="keyword">!insertmacro</span> MUI_LANGUAGE <span class="string">&quot;English&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;One&quot; SecOne  </span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;Two&quot; SecTwo  </span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;-OneTwo&quot;</span></span><br><span class="line">        <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecOne&#125;</span></span><br><span class="line">                <span class="keyword">DetailPrint</span> <span class="string">&quot;Section one&quot;</span></span><br><span class="line">                <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecTwo&#125;</span></span><br><span class="line">                        <span class="keyword">DetailPrint</span> <span class="string">&quot;Section two is selected&quot;</span></span><br><span class="line">                <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">        <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">        </span><br><span class="line">        <span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SecTwo&#125;</span></span><br><span class="line">                <span class="keyword">DetailPrint</span> <span class="string">&quot;Section two&quot;</span></span><br><span class="line">        <span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line">SectionEnd</span><br></pre></td></tr></table></figure>
+
+<p>Для работы со скриптами рекомендую пользоваться программой <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis IX</a>. Работа с программой описана тут: <a href="https://ostart.github.io/2021/07/23/venis-IX/">Работа с NSIS скриптами в Venis_IX</a>.</p>
+<p>В конце хотел бы привести несколько типичных изображений работы установщика NSIS с которым каждый пользователь Windows хоть раз, да сталкивался:</p>
+<img src="/2021/07/17/nsis-intro/nsis-intro1.png" class="" title="NSIS Intro">
+<p>&nbsp;</p>
+<img src="/2021/07/17/nsis-intro/nsis-intro2.png" class="" title="NSIS Intro">
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckww0r4ad000i8cvs588thf7i" data-title="О NSIS" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-snmpsim-docker" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/29/snmpsim-docker/" class="article-date">
+  <time class="dt-published" datetime="2021-06-29T10:11:12.000Z" itemprop="datePublished">29-06-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/29/snmpsim-docker/">SnmpSim. Запускаем в Docker</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>В предыдущем посте была рассмотрен <a href="https://ostart.github.io/2021/06/22/snmpsim/">запуск симулятора snmpsim в Windows</a>. Здесь же рассмотрим особенности запуска этого симулятора в Docker.</p>
+<p>Для запуска snmpsim в докере мы будем использовать образ python:3.7-slim-buster. Почему не Alpine можно узнать из <a target="_blank" rel="noopener" href="https://habr.com/ru/post/486202/">статьи на Хабре</a>. В целом алгоритм достаточно прост: установить из <strong>pip</strong> симулятор <em>snmpsim</em>, скопировать папку <strong>data</strong> (содержащую файл <em>public.snmprec</em>) и открыть <strong>161</strong> порт. </p>
+<p>И тут <strong>самое важное</strong>: требуется стартовать <strong>snmpsimd.py</strong> непременно из под <em>process-user</em> и <em>process-group</em> равными <strong>root</strong>.</p>
+<p>Ниже подробный Dockerfile:</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.7</span>-slim-buster</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pip install --no-cache-dir snmpsim</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> data /usr/<span class="built_in">local</span>/snmpsim/data</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">161</span>/udp</span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">&quot;snmpsimd.py&quot;</span>, <span class="string">&quot;--agent-udpv4-endpoint=0.0.0.0:161&quot;</span>, <span class="string">&quot;--process-user=root&quot;</span>, <span class="string">&quot;--process-group=root&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+<p>Файл <strong>public.snmprec</strong> из вышеупомянутой папки <em>data</em> подробно описан в <a href="https://ostart.github.io/2021/06/22/snmpsim/">предыдущем посте по snmpsim в Windows</a>.</p>
+<p>Собственно остаётся перейдти в папку с Dockerfile и выполнить команды:</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build . -t snmp-sim</span><br></pre></td></tr></table></figure>
+<p>и</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -p <span class="number">161</span>:<span class="number">161</span> snmp-sim</span><br></pre></td></tr></table></figure>
+
+<p>Проверить обмен с симулятором можно с помощью программы <a target="_blank" rel="noopener" href="https://www.ireasoning.com/mibbrowser.shtml">MIB Browser</a></p>
+<img src="/2021/06/29/snmpsim-docker/mib-browser.jpg" class="" title="MIB Browser">
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckww0r4aq00128cvs55u3elmc" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
   
     <article id="post-snmpsim" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
@@ -130,7 +250,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckw4omgf6000zb0vscmnwbh7y" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckww0r4aq00148cvsa5epbf0a" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
       
       
       
@@ -211,7 +331,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckw4omgei000bb0vshs2k7rhp" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckww0r4a7000b8cvs5h4caqxr" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
       
       
       
@@ -252,7 +372,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckw4omge60003b0vs1pyx8nue" data-title="О чем этот блог" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckww0r49w00018cvs7m6i8sb9" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
       
       
       
@@ -303,7 +423,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckw4omgen000eb0vs2kvj2a37" data-title="Hello World" class="article-share-link">Share</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckww0r4a9000d8cvsafmfb8mw" data-title="Hello World" class="article-share-link">Поделиться</a>
       
       
       
@@ -319,7 +439,7 @@
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Назад</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
   </nav>
 
 </section>
@@ -331,9 +451,9 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Tags</h3>
+    <h3 class="widget-title">Метки</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RPM/" rel="tag">RPM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPEC/" rel="tag">SPEC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bash/" rel="tag">bash</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
     </div>
   </div>
 
@@ -341,18 +461,18 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
+    <h3 class="widget-title">Облако меток</h3>
     <div class="widget tagcloud">
-      <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 10px;">LINQ</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 13.33px;">Windows-service</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 10px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 13.33px;">Linux</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 13.33px;">RPM</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 13.33px;">Windows-service</a> <a href="/tags/bash/" style="font-size: 13.33px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
+    <h3 class="widget-title">Архив</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
     </div>
   </div>
 
@@ -360,9 +480,17 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
+    <h3 class="widget-title">Недавние записи</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
+          </li>
+        
+          <li>
+            <a href="/2021/12/07/rpm-package/">RPM-пакет</a>
+          </li>
         
           <li>
             <a href="/2021/11/18/left-join/">Выполнение Left Join запросов в LINQ</a>
@@ -374,14 +502,6 @@
         
           <li>
             <a href="/2021/10/21/cursor-paging/">Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core</a>
-          </li>
-        
-          <li>
-            <a href="/2021/10/07/owin/">Добавляем WebAPI в Windows-службу</a>
-          </li>
-        
-          <li>
-            <a href="/2021/09/30/topshelf/">Разрабатываем Windows-службы с помощью TopShelf</a>
           </li>
         
       </ul>
@@ -398,7 +518,7 @@
     <div id="footer-info" class="inner">
       
       &copy; 2021 Artem Ostashchenko<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+      Создано с помощью <a href="https://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
 </footer>
