@@ -77,6 +77,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-distinct-objects" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/14/distinct-objects/" class="article-date">
+  <time class="dt-published" datetime="2021-12-14T13:08:57.000Z" itemprop="datePublished">14-12-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/14/distinct-objects/">Особенности Distinct на коллекциях объектов ссылочной природы</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Бывает, что коллекция содержит повторяющиеся объекты и требуется из неё получить коллекцию, содержащую только уникальные объекты. Этого можно добиться с помощью LINQ оператора Distinct, но есть одно но. Оператор Distinct() хорош с простыми типами, но если ваш объект представляет что-то посложнее (например экземпляр класса), то тут вас постигнет разочарование. Дубли так и останутся в коллекции. Это происходит потому, что оператор Distinct не умеет сравнивать экземпляры классов из-за их ссылочной природы.</p>
+<p>Чтобы заставить оператор Distinct работать корректно потребуется создать класс, реализующий интерфейс <code>IEqualityComparer&lt;T&gt;</code> и работающий с нашим классом (закрытый им). Этот интерфейс содержит всего два метода: <code>bool Equals(T x, T y)</code> и <code>int GetHashCode(T obj)</code>. Следовательно, реализовав эти два метода мы научим Distinct сравнивать объекты нашего класса, т.к. оператор Distinct имеет перегрузку, принимающую экземпляр, реализующий <em>IEqualityComparer</em> закрытый нашим классом.</p>
+<p>Допустим наш класс определён следующим образом:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Employee</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> ID &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Name &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Department &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Тогда класс реализующий корректное сравнение экземпляров нашего класса будет выглядеть так:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">EmployeeComparer</span>: <span class="title">IEqualityComparer</span>&lt;<span class="title">Employee</span>&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="built_in">bool</span> <span class="title">Equals</span>(<span class="params">Employee x, Employee y</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> x.ID == y.ID;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="built_in">int</span> <span class="title">GetHashCode</span>(<span class="params">Employee obj</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> obj.GetHashCode();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Теперь при вызове оператора Distinct на нашей коллекции ему требуется в параметрах передать экземпляр нашего сравнивателя EmployeeComparer:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> uniqueEmployees = employees.Distinct(<span class="keyword">new</span> EmployeeComparer()).ToList();</span><br></pre></td></tr></table></figure>
+
+<p>Такой запрос уже вернёт список уникальных экземпляров нашего класса.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx65quvo000a1ovshvtdfmkr" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-building-maintainable-software" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/14/building-maintainable-software/" class="article-date">
@@ -128,7 +180,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx63kpqf00046gvsg6n2el0x" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx65quv900031ovsgt3p1vty" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -188,7 +240,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx63kpqx000w6gvsa25f5g4u" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx65quw8000x1ovs2syk3myf" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -268,7 +320,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx63kpqx000v6gvse1m84xfo" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx65quwd000z1ovsej3yh2ff" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -313,7 +365,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx63kpqo000h6gvsa59p03d9" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx65quw0000m1ovs8xijgwi7" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
@@ -358,7 +410,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx63kpqw000t6gvs1vr7gums" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx65quw7000w1ovsfhc5e32h" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
       
       
       
@@ -445,7 +497,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx63kpqi00086gvscguudijp" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx65quvm00081ovs65sf3um1" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
       
       
       
@@ -500,7 +552,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx63kpqu000q6gvsdmb9hnmi" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx65quw6000u1ovs0ojy17js" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
       
       
       
@@ -561,7 +613,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckx63kps1005d6gvsa0a00w16" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckx65quwi00181ovs4orj9vfn" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
       
       
       
@@ -618,60 +670,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckx63kpqk000b6gvsh4ot9vmu" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckx65quvp000b1ovs9b12hpnp" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-add-csharp-nuget-package-vscode" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/09/17/add-csharp-nuget-package-vscode/" class="article-date">
-  <time class="dt-published" datetime="2021-09-17T10:24:36.000Z" itemprop="datePublished">17-09-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/09/17/add-csharp-nuget-package-vscode/">Добавляем из терминала VSCode NuGet пакеты в C# проект</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Существует возможность создания разнообразных видов проектов <em><strong>.NET 5</strong></em> прямо из терминала <em><strong>VSCode</strong></em>. Терминал можно вызвать горячими клавишами <code>Ctrl+`</code> или с помощью меню <code>View -&gt; Terminal</code>. Взгляните:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">D:\Github\EnumSharp&gt;dotnet new </span><br><span class="line">Template Name                                 Short Name           Language    Tags</span><br><span class="line">--------------------------------------------  -------------------  ----------  ----------------------</span><br><span class="line">Console Application                           console              [C#],F#,VB  Common/Console        </span><br><span class="line">Class library                                 classlib             [C#],F#,VB  Common/Library        </span><br><span class="line">WPF Application                               wpf                  [C#],VB     Common/WPF</span><br><span class="line">WPF Class library                             wpflib               [C#],VB     Common/WPF</span><br><span class="line">WPF Custom Control Library                    wpfcustomcontrollib  [C#],VB     Common/WPF</span><br><span class="line">WPF User Control Library                      wpfusercontrollib    [C#],VB     Common/WPF</span><br><span class="line">Windows Forms App                             winforms             [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Control Library                 winformscontrollib   [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Class Library                   winformslib          [C#],VB     Common/WinForms       </span><br><span class="line">Worker Service                                worker               [C#],F#     Common/Worker/Web     </span><br><span class="line">MSTest Test Project                           mstest               [C#],F#,VB  Test/MSTest</span><br><span class="line">NUnit 3 Test Project                          nunit                [C#],F#,VB  Test/NUnit</span><br><span class="line">NUnit 3 Test Item                             nunit-test           [C#],F#,VB  Test/NUnit</span><br><span class="line">xUnit Test Project                            xunit                [C#],F#,VB  Test/xUnit</span><br><span class="line">Razor Component                               razorcomponent       [C#]        Web/ASP.NET</span><br><span class="line">Razor Page                                    page                 [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewImports                               viewimports          [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewStart                                 viewstart            [C#]        Web/ASP.NET</span><br><span class="line">Blazor Server App                             blazorserver         [C#]        Web/Blazor</span><br><span class="line">Blazor WebAssembly App                        blazorwasm           [C#]        Web/Blazor/WebAssembly</span><br><span class="line">ASP.NET Core Empty                            web                  [C#],F#     Web/Empty</span><br><span class="line">ASP.NET Core Web App (Model-View-Controller)  mvc                  [C#],F#     Web/MVC</span><br><span class="line">ASP.NET Core Web App                          webapp               [C#]        Web/MVC/Razor Pages   </span><br><span class="line">ASP.NET Core with Angular                     angular              [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js                    react                [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js and Redux          reactredux           [C#]        Web/MVC/SPA</span><br><span class="line">Razor Class Library                           razorclasslib        [C#]        Web/Razor/Library     </span><br><span class="line">ASP.NET Core Web API                          webapi               [C#],F#     Web/WebAPI</span><br><span class="line">ASP.NET Core gRPC Service                     grpc                 [C#]        Web/gRPC</span><br><span class="line">dotnet gitignore file                         gitignore                        Config</span><br><span class="line">global.json file                              globaljson                       Config</span><br><span class="line">NuGet Config                                  nugetconfig                      Config</span><br><span class="line">Dotnet local tool manifest file               tool-manifest                    Config</span><br><span class="line">Web Config                                    webconfig                        Config</span><br><span class="line">Solution File                                 sln                              Solution</span><br><span class="line">Protocol Buffer File                          proto                            Web/gRPC</span><br><span class="line"></span><br><span class="line">Examples:</span><br><span class="line">    dotnet new mvc --auth Individual</span><br><span class="line">    dotnet new web </span><br><span class="line">    dotnet new --help</span><br><span class="line">    dotnet new nunit --help</span><br></pre></td></tr></table></figure>
-
-<p>Создадим консольное приложение командой: <code>dotnet new console</code></p>
-<p>Но как теперь добавить в наш проект NuGet пакеты также из терминала?! Install-Package не работает :(</p>
-<p>Тут нам поможет команда: <code>dotnet add package &lt;ИМЯ_ПАКЕТА&gt;</code></p>
-<p>Например, добавим в наш проект пакеты  <strong>BenchmarkDotNet</strong> и <strong>BenchmarkDotNet.Annotations</strong>.<br>Для этого в терминале выполним следующие команды:<br><code>dotnet add package BenchmarkDotNet</code><br><code>dotnet add package BenchmarkDotNet.Annotations</code></p>
-<p>Вуаля! Требующиеся NuGet пакеты добавлены в наш проект:</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Project</span> <span class="attr">Sdk</span>=<span class="string">&quot;Microsoft.NET.Sdk&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">OutputType</span>&gt;</span>Exe<span class="tag">&lt;/<span class="name">OutputType</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">TargetFramework</span>&gt;</span>net5.0<span class="tag">&lt;/<span class="name">TargetFramework</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet.Annotations&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">Project</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckx63kpq600006gvs028b39k2" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li></ul>
 
     </footer>
   </div>
@@ -731,6 +734,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/14/distinct-objects/">Особенности Distinct на коллекциях объектов ссылочной природы</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
           </li>
         
@@ -744,10 +751,6 @@
         
           <li>
             <a href="/2021/11/18/left-join/">Выполнение Left Join запросов в LINQ</a>
-          </li>
-        
-          <li>
-            <a href="/2021/11/18/progressive-delay-pattern/">Шаблон увеличивающегося интервала повторения запроса</a>
           </li>
         
       </ul>

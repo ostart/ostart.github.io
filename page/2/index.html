@@ -77,6 +77,55 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-add-csharp-nuget-package-vscode" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/09/17/add-csharp-nuget-package-vscode/" class="article-date">
+  <time class="dt-published" datetime="2021-09-17T10:24:36.000Z" itemprop="datePublished">17-09-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/09/17/add-csharp-nuget-package-vscode/">Добавляем из терминала VSCode NuGet пакеты в C# проект</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Существует возможность создания разнообразных видов проектов <em><strong>.NET 5</strong></em> прямо из терминала <em><strong>VSCode</strong></em>. Терминал можно вызвать горячими клавишами <code>Ctrl+`</code> или с помощью меню <code>View -&gt; Terminal</code>. Взгляните:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">D:\Github\EnumSharp&gt;dotnet new </span><br><span class="line">Template Name                                 Short Name           Language    Tags</span><br><span class="line">--------------------------------------------  -------------------  ----------  ----------------------</span><br><span class="line">Console Application                           console              [C#],F#,VB  Common/Console        </span><br><span class="line">Class library                                 classlib             [C#],F#,VB  Common/Library        </span><br><span class="line">WPF Application                               wpf                  [C#],VB     Common/WPF</span><br><span class="line">WPF Class library                             wpflib               [C#],VB     Common/WPF</span><br><span class="line">WPF Custom Control Library                    wpfcustomcontrollib  [C#],VB     Common/WPF</span><br><span class="line">WPF User Control Library                      wpfusercontrollib    [C#],VB     Common/WPF</span><br><span class="line">Windows Forms App                             winforms             [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Control Library                 winformscontrollib   [C#],VB     Common/WinForms       </span><br><span class="line">Windows Forms Class Library                   winformslib          [C#],VB     Common/WinForms       </span><br><span class="line">Worker Service                                worker               [C#],F#     Common/Worker/Web     </span><br><span class="line">MSTest Test Project                           mstest               [C#],F#,VB  Test/MSTest</span><br><span class="line">NUnit 3 Test Project                          nunit                [C#],F#,VB  Test/NUnit</span><br><span class="line">NUnit 3 Test Item                             nunit-test           [C#],F#,VB  Test/NUnit</span><br><span class="line">xUnit Test Project                            xunit                [C#],F#,VB  Test/xUnit</span><br><span class="line">Razor Component                               razorcomponent       [C#]        Web/ASP.NET</span><br><span class="line">Razor Page                                    page                 [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewImports                               viewimports          [C#]        Web/ASP.NET</span><br><span class="line">MVC ViewStart                                 viewstart            [C#]        Web/ASP.NET</span><br><span class="line">Blazor Server App                             blazorserver         [C#]        Web/Blazor</span><br><span class="line">Blazor WebAssembly App                        blazorwasm           [C#]        Web/Blazor/WebAssembly</span><br><span class="line">ASP.NET Core Empty                            web                  [C#],F#     Web/Empty</span><br><span class="line">ASP.NET Core Web App (Model-View-Controller)  mvc                  [C#],F#     Web/MVC</span><br><span class="line">ASP.NET Core Web App                          webapp               [C#]        Web/MVC/Razor Pages   </span><br><span class="line">ASP.NET Core with Angular                     angular              [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js                    react                [C#]        Web/MVC/SPA</span><br><span class="line">ASP.NET Core with React.js and Redux          reactredux           [C#]        Web/MVC/SPA</span><br><span class="line">Razor Class Library                           razorclasslib        [C#]        Web/Razor/Library     </span><br><span class="line">ASP.NET Core Web API                          webapi               [C#],F#     Web/WebAPI</span><br><span class="line">ASP.NET Core gRPC Service                     grpc                 [C#]        Web/gRPC</span><br><span class="line">dotnet gitignore file                         gitignore                        Config</span><br><span class="line">global.json file                              globaljson                       Config</span><br><span class="line">NuGet Config                                  nugetconfig                      Config</span><br><span class="line">Dotnet local tool manifest file               tool-manifest                    Config</span><br><span class="line">Web Config                                    webconfig                        Config</span><br><span class="line">Solution File                                 sln                              Solution</span><br><span class="line">Protocol Buffer File                          proto                            Web/gRPC</span><br><span class="line"></span><br><span class="line">Examples:</span><br><span class="line">    dotnet new mvc --auth Individual</span><br><span class="line">    dotnet new web </span><br><span class="line">    dotnet new --help</span><br><span class="line">    dotnet new nunit --help</span><br></pre></td></tr></table></figure>
+
+<p>Создадим консольное приложение командой: <code>dotnet new console</code></p>
+<p>Но как теперь добавить в наш проект NuGet пакеты также из терминала?! Install-Package не работает :(</p>
+<p>Тут нам поможет команда: <code>dotnet add package &lt;ИМЯ_ПАКЕТА&gt;</code></p>
+<p>Например, добавим в наш проект пакеты  <strong>BenchmarkDotNet</strong> и <strong>BenchmarkDotNet.Annotations</strong>.<br>Для этого в терминале выполним следующие команды:<br><code>dotnet add package BenchmarkDotNet</code><br><code>dotnet add package BenchmarkDotNet.Annotations</code></p>
+<p>Вуаля! Требующиеся NuGet пакеты добавлены в наш проект:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Project</span> <span class="attr">Sdk</span>=<span class="string">&quot;Microsoft.NET.Sdk&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">OutputType</span>&gt;</span>Exe<span class="tag">&lt;/<span class="name">OutputType</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">TargetFramework</span>&gt;</span>net5.0<span class="tag">&lt;/<span class="name">TargetFramework</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PackageReference</span> <span class="attr">Include</span>=<span class="string">&quot;BenchmarkDotNet.Annotations&quot;</span> <span class="attr">Version</span>=<span class="string">&quot;0.13.1&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">Project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckx65quuu00001ovs0iiyerdm" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-epplus-named-style" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/09/09/epplus-named-style/" class="article-date">
@@ -115,7 +164,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckx63kpqk000c6gvs6qxzhrr3" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckx65quvs000e1ovs305850ao" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Поделиться</a>
       
       
       
@@ -166,7 +215,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckx63kpqb00016gvsdn7336q6" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckx65quvh00041ovs741y9bi0" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Поделиться</a>
       
       
       
@@ -213,7 +262,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckx63kpqn000f6gvs915chib1" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckx65quvy000j1ovs83kn3g7d" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Поделиться</a>
       
       
       
@@ -269,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckx63kpqe00036gvs8uo229fz" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckx65quvi00051ovs10o68d8h" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Поделиться</a>
       
       
       
@@ -329,7 +378,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckx63kpqj00096gvs3w272uvm" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckx65quvl00071ovs6gwwf49o" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Поделиться</a>
       
       
       
@@ -371,7 +420,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckx63kpqy000y6gvsg3kk407w" data-title="Простой SNMP сервер на C#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckx65quwe00111ovs0o19d7vg" data-title="Простой SNMP сервер на C#" class="article-share-link">Поделиться</a>
       
       
       
@@ -415,7 +464,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckx63kpr100106gvsemzj96mp" data-title="Структура SNMP ответа get-response" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckx65quwg00161ovs6cx9a8zc" data-title="Структура SNMP ответа get-response" class="article-share-link">Поделиться</a>
       
       
       
@@ -459,7 +508,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckx63kpr200136gvsbnq1390g" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckx65quwf00141ovs5boa5t77" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
       
       
       
@@ -605,69 +654,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckx63kpqv000s6gvs18o387he" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckx65quw5000t1ovs77njaker" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-venis-IX" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/07/23/venis-IX/" class="article-date">
-  <time class="dt-published" datetime="2021-07-23T08:34:07.000Z" itemprop="datePublished">23-07-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/07/23/venis-IX/">Работа с NSIS скриптами в Venis_IX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Для редактирования и компиляции NSIS скриптов есть замечательная программа <a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Venis_IX">Venis_IX</a>.</p>
-<img src="/2021/07/23/venis-IX/venis1.jpg" class="" title="Venis Main Window">
-
-<p>Для шаблонной генерации скрипта установщика в программе присутствует Venis Install Wizard:</p>
-<img src="/2021/07/23/venis-IX/venis2.jpg" class="" title="Venis Install Wizard">
-
-<p>В основном окне можно создать / открыть скрипт (расширение .nsi), отредактировать его и откомпилировать. Результат компиляции отображается в консольном окне Compile Results. В случае успеха будет показан конечный размер установщика (Total size:) в байтах, как показано на изображении ниже:</p>
-<img src="/2021/07/23/venis-IX/venis3.jpg" class="" title="Venis Compile Results">
-
-<p>В случае ошибки в консоли будет указана причина и строка на которой ошибка случилась.</p>
-<img src="/2021/07/23/venis-IX/venis4.jpg" class="" title="Venis Compile Error">
-
-<p>К сожалению в программе нет привычного разработчикам дебаггера, поэтому отладка скрипта, как правило, осуществляется при его выполнении через всплывающие окна MessageBox или вывод в консоль с помощью DetailPrint.</p>
-<p>Также в программе есть великолепная и подробная справка по языку, командам и макросам NSIS (NSIS User Manual):</p>
-<img src="/2021/07/23/venis-IX/venis5.jpg" class="" title="Venis NSIS Help">
-<p>&nbsp;</p>
-<img src="/2021/07/23/venis-IX/venis6.jpg" class="" title="Venis NSIS User Manual">
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckx63kpr400196gvsdlbicnmx" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/script/" rel="tag">script</a></li></ul>
 
     </footer>
   </div>
@@ -727,6 +718,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/14/distinct-objects/">Особенности Distinct на коллекциях объектов ссылочной природы</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
           </li>
         
@@ -740,10 +735,6 @@
         
           <li>
             <a href="/2021/11/18/left-join/">Выполнение Left Join запросов в LINQ</a>
-          </li>
-        
-          <li>
-            <a href="/2021/11/18/progressive-delay-pattern/">Шаблон увеличивающегося интервала повторения запроса</a>
           </li>
         
       </ul>
