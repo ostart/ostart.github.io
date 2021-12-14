@@ -77,6 +77,71 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-building-maintainable-software" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/14/building-maintainable-software/" class="article-date">
+  <time class="dt-published" datetime="2021-12-14T12:29:57.000Z" itemprop="datePublished">14-12-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Прочёл и рекомендую к прочтению книгу Джуста Виссера “Разработка обслуживаемых программ на языке С#”. Книга содержит набор критериев, выработанных консультантами Software Improvement Group после анализа сотен реальных систем. Авторами были сформулированы 10 простых рекомендаций, позволяющих писать программное обеспечение, которое легко поддерживать и развивать.</p>
+<p>Перечилю эти 10 рекомендаций/критериев:</p>
+<ol>
+<li><p><strong>Короткие блоки кода (max. 15 строк кода)</strong>. <em>Короткие блоки проще понять, тестировать и переиспользовать</em></p>
+</li>
+<li><p><strong>Простые блоки кода (max. 4 точки ветвления)</strong>. <em>Это упрощает модификацию и тестирование</em></p>
+</li>
+<li><p><strong>Не дублируйте код</strong>. <em>При дублировании исправлять придётся в нескольких местах</em>.</p>
+</li>
+<li><p><strong>Уменьшайте размеры интерфейсов (передавайте в блоки кода max. 4 параметра)</strong>. <em>Объединяйте параметры в объекты. Небольшие размеры интерфесов упростят понимание и переиспользование кода</em>.</p>
+</li>
+<li><p><strong>Разделяйте задачи на модули (большие модули образуют тесные связи)</strong>. <em>Разделяйте сферы ответственности модулей и скрывайте детали реализации за интерфейсами. Такой код проще модифицировать и контролировать</em>.</p>
+</li>
+<li><p><strong>Избегайте тесной связи между элементами архитектуры</strong>. <em>Минифицируйте объем экспортируемого кода, доступного в других компонентах</em>.</p>
+</li>
+<li><p><strong>Сбалансируйте архитектуру компонентов (min 6, max 12, optimal 9 компонентов одинакового размера)</strong>. <em>Проще искать код и обеспечить изоляцию</em>.</p>
+</li>
+<li><p><strong>Следите за размером базы кода</strong>. <em>Удаляйте лишний код. Предотвращайте разрастание кода. Небольшой размер продукта, проекта, команды - важный фактор успеха</em>.</p>
+</li>
+<li><p><strong>Автоматизируйте тестирование</strong>. <em>Это делает разработку предсказуемой и менее рискованной</em>.</p>
+</li>
+<li><p><strong>Пишите чистый код</strong>. <em>Не оставляйте грязи. Обслуживать чистый код намного проще</em>.</p>
+</li>
+</ol>
+<p>Кроме примеров кода, книга содержит типичные возражения по каждой рекомендации/критерию. Среди них встретились старые знакомые, кочующие из проекта в проект. Большое спасибо авторам. Книга читается легко, имеет небольшой размер и хорошо структурирована.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx63kpqf00046gvsg6n2el0x" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-rpm-spec" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/07/rpm-spec/" class="article-date">
@@ -123,7 +188,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckww0tlb9000ukgvsfl1xg1dg" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx63kpqx000w6gvsa25f5g4u" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -203,7 +268,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckww0tlb5000pkgvs38jxex9s" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx63kpqx000v6gvse1m84xfo" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -248,7 +313,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckww0tlb0000gkgvsfxj3ctas" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx63kpqo000h6gvsa59p03d9" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
@@ -293,7 +358,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckww0tlb7000skgvsfc43g0kv" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx63kpqw000t6gvs1vr7gums" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
       
       
       
@@ -380,7 +445,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckww0tlar0007kgvsaw8eggy2" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx63kpqi00086gvscguudijp" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
       
       
       
@@ -435,7 +500,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckww0tlb4000nkgvs90ejcev8" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx63kpqu000q6gvsdmb9hnmi" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
       
       
       
@@ -496,7 +561,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckww0tlbh0016kgvsccardtlg" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckx63kps1005d6gvsa0a00w16" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
       
       
       
@@ -553,7 +618,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckww0tlas0008kgvs0gy8fi95" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckx63kpqk000b6gvsh4ot9vmu" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
       
       
       
@@ -602,63 +667,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckww0tlaf0000kgvs3a9f8e1g" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckx63kpq600006gvs028b39k2" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-epplus-named-style" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/09/09/epplus-named-style/" class="article-date">
-  <time class="dt-published" datetime="2021-09-09T11:08:53.000Z" itemprop="datePublished">09-09-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/09/09/epplus-named-style/">Как эффективно выделять ячейки в файлах Excel с помощью EPPlus</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>При построении отчетов в различных системах используется Excel. Для его формирования из C# кода часто используется <a target="_blank" rel="noopener" href="https://epplussoftware.com/">EPPlus</a>. EPPlus интуитивно понятен:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> file = <span class="keyword">new</span> FileInfo(<span class="string">@&quot;c:\temp\myWorkbook.xlsx&quot;</span>);</span><br><span class="line"><span class="keyword">using</span>(<span class="keyword">var</span> package = <span class="keyword">new</span> ExcelPackage(file))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> sheet = package.Workbook.Worksheets.Add(<span class="string">&quot;My Sheet&quot;</span>);</span><br><span class="line">    sheet.Cells[<span class="string">&quot;A1&quot;</span>].Value = <span class="string">&quot;Hello World!&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Save to file</span></span><br><span class="line">    package.Save();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>EPPlus имеет много встроенных механизмов для получения одного и того же результата разными путями, но не все пути одинаково эффективны для больших и очень больших размеров рабочих листов. В частности, я столкнулся с проблемой обведения контуров ячеек и выделения жирным шрифтом документов Excel, содержащих свыше 10000 столбцов.</p>
-<p>Используемый мной подход “в лоб” заключался в обводке контуров ячеек непосредственно в месте их заполнения данными с помощью функции DrawBorder:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// использование функции DrawBorder. ПОЛНЫЙ ПРОВАЛ в эффективности!!!</span></span><br><span class="line">DrawBorder(worksheet.Cells[<span class="number">4</span>, <span class="number">6</span>, <span class="number">4</span>, shift + dateTimeRanges.Count - <span class="number">1</span>], ExcelBorderStyle.Medium, BorderSide.TopBottom);</span><br><span class="line">DrawBorder(worksheet.Cells[<span class="number">4</span>, <span class="number">6</span>, <span class="number">4</span>, shift + dateTimeRanges.Count - <span class="number">1</span>], ExcelBorderStyle.Thin, BorderSide.LeftRight);</span><br><span class="line">DrawBorder(worksheet.Cells[<span class="number">4</span>, shift + dateTimeRanges.Count - <span class="number">1</span>], ExcelBorderStyle.Medium, BorderSide.Right);</span><br><span class="line"></span><br><span class="line"><span class="comment">// определение функции DrawBorder: НАИВНОЕ и НЕЭФФЕКТИВНОЕ</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">DrawBorder</span>(<span class="params">ExcelRange worksheetCell, ExcelBorderStyle borderStyle, BorderSide side</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">switch</span> (side)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">case</span> BorderSide.EveryOne:</span><br><span class="line">            worksheetCell.Style.Border.Top.Style = borderStyle;</span><br><span class="line">            worksheetCell.Style.Border.Left.Style = borderStyle;</span><br><span class="line">            worksheetCell.Style.Border.Right.Style = borderStyle;</span><br><span class="line">            worksheetCell.Style.Border.Bottom.Style = borderStyle;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> BorderSide.Top:</span><br><span class="line">            worksheetCell.Style.Border.Top.Style = borderStyle;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> BorderSide.Left:</span><br><span class="line">            worksheetCell.Style.Border.Left.Style = borderStyle;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> BorderSide.Bottom:</span><br><span class="line">            worksheetCell.Style.Border.Bottom.Style = borderStyle;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> BorderSide.Right:</span><br><span class="line">            worksheetCell.Style.Border.Right.Style = borderStyle;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> BorderSide.TopBottom:</span><br><span class="line">            worksheetCell.Style.Border.Top.Style = borderStyle;</span><br><span class="line">            worksheetCell.Style.Border.Bottom.Style = borderStyle;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> BorderSide.LeftRight:</span><br><span class="line">            worksheetCell.Style.Border.Left.Style = borderStyle;</span><br><span class="line">            worksheetCell.Style.Border.Right.Style = borderStyle;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="literal">default</span>:</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> ArgumentOutOfRangeException(<span class="keyword">nameof</span>(side), side, <span class="literal">null</span>);</span><br><span class="line">    &#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Данный подход показал свою <strong>полную неэффективность</strong>. Отчеты строились по часу и более…</p>
-<p>Правильный подход заключается в определении именованных стилей NamedStyle и применении этих стилей для конкретных ячеек:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// определение именованных стилей NamedStyle</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">AddNamedStyles</span>(<span class="params">ExcelPackage excel</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> thinBorders = excel.Workbook.Styles.CreateNamedStyle(<span class="string">&quot;ThinBordersStyle&quot;</span>);</span><br><span class="line">    thinBorders.Style.Border.Top.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    thinBorders.Style.Border.Left.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    thinBorders.Style.Border.Right.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    thinBorders.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    thinBorders.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;</span><br><span class="line">    thinBorders.Style.VerticalAlignment = ExcelVerticalAlignment.Center;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> totalThinBoldBorders = excel.Workbook.Styles.CreateNamedStyle(<span class="string">&quot;TotalThinBordersBoldStyle&quot;</span>);</span><br><span class="line">    totalThinBoldBorders.Style.Border.Top.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    totalThinBoldBorders.Style.Border.Left.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    totalThinBoldBorders.Style.Border.Right.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    totalThinBoldBorders.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;</span><br><span class="line">    totalThinBoldBorders.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;</span><br><span class="line">    totalThinBoldBorders.Style.VerticalAlignment = ExcelVerticalAlignment.Center;</span><br><span class="line">    totalThinBoldBorders.Style.Font.Bold = <span class="literal">true</span>;</span><br><span class="line">    totalThinBoldBorders.Style.Font.Size = <span class="number">12</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// использование именованных стилей NamedStyle</span></span><br><span class="line">worksheet.Cells[startRow, <span class="number">1</span>, currentRow - <span class="number">1</span>, shift + dateTimeRanges.Count - <span class="number">1</span>].StyleName = <span class="string">&quot;ThinBordersStyle&quot;</span>;</span><br><span class="line">worksheet.Cells[currentRow, <span class="number">1</span>, currentRow + <span class="number">1</span>, shift + dateTimeRanges.Count - <span class="number">1</span>].StyleName = <span class="string">&quot;TotalThinBordersBoldStyle&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<p>Использование именованных стилей NamedStyle привело к намного более эффективному построению отчетов Excel. Отчеты стали строиться за 7-10 минут, что почти в 10 раз быстрее первоначального подхода с DrawBorder. Как говорилось в рекламе из 90-х, “не все йогурты одинаково полезны…”</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckww0tlat000akgvsb1f4ca1m" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li></ul>
 
     </footer>
   </div>
@@ -718,6 +731,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
           </li>
         
@@ -731,10 +748,6 @@
         
           <li>
             <a href="/2021/11/18/progressive-delay-pattern/">Шаблон увеличивающегося интервала повторения запроса</a>
-          </li>
-        
-          <li>
-            <a href="/2021/10/21/cursor-paging/">Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core</a>
           </li>
         
       </ul>

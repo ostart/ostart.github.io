@@ -77,6 +77,84 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-nsis-scripting" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/18/nsis-scripting/" class="article-date">
+  <time class="dt-published" datetime="2021-07-18T10:02:25.000Z" itemprop="datePublished">18-07-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/18/nsis-scripting/">Введение в синтаксис NSIS скриптов</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="Типичный-скрипт-NSIS-состоит-из"><a href="#Типичный-скрипт-NSIS-состоит-из" class="headerlink" title="Типичный скрипт NSIS состоит из:"></a>Типичный скрипт NSIS состоит из:</h3><ul>
+<li><p>Глобальных переменных (Var nameServer)</p>
+</li>
+<li><p>Стэка</p>
+</li>
+<li><p>Регистров ($0-$9,$R0-$R9)</p>
+</li>
+<li><p>Встроенных функций (StrCmp, IntCmp, IfErrors, Goto …)</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">StrCmp</span> <span class="variable">$0</span> <span class="string">&#x27;some value&#x27;</span> <span class="number">0</span> +<span class="number">3</span></span><br><span class="line">  <span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&#x27;<span class="meta">$$</span>0 is some value&#x27;</span></span><br><span class="line">  <span class="keyword">Goto</span> done</span><br><span class="line"><span class="keyword">StrCmp</span> <span class="variable">$0</span> <span class="string">&#x27;some other value&#x27;</span> <span class="number">0</span> +<span class="number">3</span></span><br><span class="line">  <span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&#x27;<span class="meta">$$</span>0 is some other value&#x27;</span></span><br><span class="line">  <span class="keyword">Goto</span> done</span><br><span class="line"><span class="comment"># else</span></span><br><span class="line">  <span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&#x27;<span class="meta">$$</span>0 is &quot;<span class="variable">$0</span>&quot;&#x27;</span></span><br><span class="line">done:</span><br></pre></td></tr></table></figure></li>
+<li><p>удобной библиотеки LogicLib, превращающей логические операции встроенных функций в некое подобие высокоуровневой библиотеки</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$&#123;If&#125;</span> <span class="variable">$0</span> == <span class="string">&#x27;some value&#x27;</span></span><br><span class="line">  <span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&#x27;<span class="meta">$$</span>0 is some value&#x27;</span></span><br><span class="line"><span class="variable">$&#123;ElseIf&#125;</span> <span class="variable">$0</span> == <span class="string">&#x27;some other value&#x27;</span></span><br><span class="line">  <span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&#x27;<span class="meta">$$</span>0 is some other value&#x27;</span></span><br><span class="line"><span class="variable">$&#123;Else&#125;</span></span><br><span class="line">  <span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&#x27;<span class="meta">$$</span>0 is &quot;<span class="variable">$0</span>&quot;&#x27;</span></span><br><span class="line"><span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$&#123;Switch&#125;</span>, <span class="variable">$&#123;If&#125;</span>, <span class="variable">$&#123;While&#125;</span>, <span class="variable">$&#123;For&#125;</span> etc.</span><br></pre></td></tr></table></figure></li>
+<li><p>Комментариев  ; # /**/ </p>
+</li>
+<li><p>Переноса на следующую строку   \</p>
+</li>
+<li><p>Объявления и использования переменных</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Var</span> BLA <span class="comment">;Declare the variable</span></span><br><span class="line"><span class="keyword">StrCpy</span> <span class="variable">$BLA</span> <span class="string">&quot;123&quot;</span> <span class="comment">;Now you can use the variable $BLA</span></span><br></pre></td></tr></table></figure></li>
+<li><p>Подключения внешних скриптов </p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">!include</span> LogicLib.nsh</span><br></pre></td></tr></table></figure></li>
+<li><p>Определения констант </p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">!define</span> APPNAME <span class="string">&quot;Installer“</span></span><br></pre></td></tr></table></figure></li>
+<li><p>Ветвления</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$&#123;If&#125;</span> <span class="variable">$Dialog</span> == error</span><br><span class="line">	<span class="keyword">Abort</span></span><br><span class="line"><span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$&#123;IfNot&#125;</span> <span class="variable">$&#123;Silent&#125;</span></span><br><span class="line"><span class="variable">$&#123;AndIf&#125;</span> <span class="variable">$&#123;SectionIsSelected&#125;</span> <span class="variable">$&#123;SectionAgent&#125;</span></span><br><span class="line">	...code...</span><br><span class="line"><span class="variable">$&#123;EndIf&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>Функций</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">Function</span> bla</span></span><br><span class="line">  <span class="keyword">Push</span> <span class="variable">$R0</span></span><br><span class="line">  <span class="keyword">Push</span> <span class="variable">$R1</span></span><br><span class="line">    ...code...</span><br><span class="line">  <span class="keyword">Pop</span> <span class="variable">$R1</span></span><br><span class="line">  <span class="keyword">Pop</span> <span class="variable">$R0</span></span><br><span class="line">FunctionEnd</span><br><span class="line"></span><br><span class="line"><span class="keyword">Call</span> bla  <span class="comment">;call the function. Arguments pass by stack</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Function</span> un.bla</span></span><br><span class="line">  ...code...</span><br><span class="line">FunctionEnd</span><br></pre></td></tr></table></figure></li>
+<li><p>Макросов</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">!macro</span> LogDetailPrintMessageBox message</span><br><span class="line">	<span class="keyword">!insertmacro</span> GetTimeStampString <span class="variable">$R9</span></span><br><span class="line">	<span class="class">nsislog::log</span> <span class="string">&quot;<span class="variable">$EXEDIR</span>\<span class="variable">$&#123;LOGFILE&#125;</span>&quot;</span> <span class="string">&quot;<span class="variable">$R9</span>: <span class="variable">$&#123;message&#125;</span>&quot;</span></span><br><span class="line">	<span class="variable">$&#123;IfNot&#125;</span> <span class="variable">$&#123;Silent&#125;</span></span><br><span class="line">		<span class="keyword">DetailPrint</span> <span class="string">&quot;<span class="variable">$&#123;message&#125;</span>&quot;</span></span><br><span class="line">		<span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&quot;<span class="variable">$&#123;message&#125;</span>&quot;</span></span><br><span class="line">	<span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line"><span class="keyword">!macro</span>end</span><br></pre></td></tr></table></figure></li>
+<li><p>Окон сообщений MessageBox</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">MessageBox</span> <span class="params">MB_OK</span> <span class="string">&quot;simple message box&quot;</span></span><br><span class="line"><span class="keyword">MessageBox</span> <span class="params">MB_YESNO</span> <span class="string">&quot;is it true?&quot;</span> <span class="params">IDYES</span> <span class="literal">true</span> <span class="params">IDNO</span> <span class="literal">false</span></span><br><span class="line"><span class="literal">true</span>:</span><br><span class="line">  <span class="keyword">DetailPrint</span> <span class="string">&quot;it&#x27;s true!&quot;</span></span><br><span class="line">  <span class="keyword">Goto</span> next</span><br><span class="line"><span class="literal">false</span>:</span><br><span class="line">  <span class="keyword">DetailPrint</span> <span class="string">&quot;it&#x27;s false&quot;</span></span><br><span class="line">next:</span><br></pre></td></tr></table></figure></li>
+<li><p>Отладочных сообщений DetailPrint</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DetailPrint</span> <span class="string">&quot;this message will show on the installation window&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>Секций Sections</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">Section</span> &quot;-hidden section&quot;</span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> # hidden section</span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;!bold section&quot;</span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> /o &quot;optional&quot;</span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;install something&quot; SEC_IDX</span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="keyword">InstType</span> <span class="string">&quot;full&quot;</span></span><br><span class="line"><span class="keyword">InstType</span> <span class="string">&quot;minimal&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;a section&quot;</span></span><br><span class="line">    <span class="keyword">SectionIn</span> <span class="number">1</span> <span class="number">2</span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;another section&quot;</span></span><br><span class="line">     <span class="keyword">SectionIn</span> <span class="number">1</span></span><br><span class="line">SectionEnd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">Section</span> &quot;Uninstall&quot;</span></span><br><span class="line">  <span class="keyword">Delete</span> <span class="variable">$INSTDIR</span>\Uninst.exe <span class="comment">; delete self (see explanation below why this works)</span></span><br><span class="line">  <span class="keyword">Delete</span> <span class="variable">$INSTDIR</span>\myApp.exe</span><br><span class="line">  <span class="keyword">RMDir</span> <span class="variable">$INSTDIR</span></span><br><span class="line">  <span class="keyword">DeleteRegKey</span> <span class="params">HKLM</span> SOFTWARE\myApp</span><br><span class="line">SectionEnd</span><br></pre></td></tr></table></figure></li>
+<li><p>Плагинов Plug-in DLLs</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class">SimpleSC::ExistsService</span> <span class="string">&quot;<span class="variable">$paramServiceName</span>&quot;</span></span><br><span class="line"><span class="keyword">Pop</span> <span class="variable">$0</span> <span class="comment">; returns an errorcode if the service doesn?t exists (&lt;&gt;0)/service exists (0)</span></span><br><span class="line"><span class="variable">$&#123;If&#125;</span> <span class="variable">$0</span> == <span class="number">0</span></span><br><span class="line">	<span class="keyword">Call</span> smartRemover</span><br><span class="line">	<span class="keyword">Abort</span></span><br><span class="line"><span class="variable">$&#123;EndIf&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ClearErrors</span></span><br><span class="line"><span class="class">nsJSON::Serialize</span> /format /file <span class="string">&quot;<span class="variable">$INSTDIR</span>\<span class="variable">$&#123;appName&#125;</span>\appsettings.json&quot;</span> <span class="comment">;save to file</span></span><br><span class="line"><span class="variable">$&#123;If&#125;</span> <span class="variable">$&#123;Errors&#125;</span></span><br><span class="line">	<span class="keyword">Call</span> smartRemover</span><br><span class="line">	<span class="keyword">Abort</span></span><br><span class="line"><span class="variable">$&#123;EndIf&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>Шаблонов современного пользовательского интерфейса Modern User Interface</p>
+<figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Installer pages</span><br><span class="line">MUI_PAGE_WELCOME</span><br><span class="line">MUI_PAGE_LICENSE textfile</span><br><span class="line">MUI_PAGE_COMPONENTS</span><br><span class="line">MUI_PAGE_DIRECTORY</span><br><span class="line">MUI_PAGE_STARTMENU pageid variable</span><br><span class="line">MUI_PAGE_INSTFILES</span><br><span class="line">MUI_PAGE_FINISH</span><br><span class="line"></span><br><span class="line">Uninstaller pages</span><br><span class="line">MUI_UNPAGE_WELCOME</span><br><span class="line">MUI_UNPAGE_CONFIRM</span><br><span class="line">MUI_UNPAGE_LICENSE textfile</span><br><span class="line">MUI_UNPAGE_COMPONENTS</span><br><span class="line">MUI_UNPAGE_DIRECTORY</span><br><span class="line">MUI_UNPAGE_INSTFILES</span><br><span class="line">MUI_UNPAGE_FINISH</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckx63kpqt000o6gvshsp6d8pk" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-nsis-intro" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/07/17/nsis-intro/" class="article-date">
@@ -131,7 +209,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckww0tlb2000ikgvs1ww279uf" data-title="О NSIS" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckx63kpqs000m6gvsh64413m2" data-title="О NSIS" class="article-share-link">Поделиться</a>
       
       
       
@@ -183,7 +261,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckww0tlbf0012kgvs5ct48gjv" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckx63kpr200156gvs43ay6knm" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
       
       
       
@@ -250,7 +328,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckww0tlbg0014kgvsavux9nxb" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckx63kpr300186gvsa5em51e8" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
       
       
       
@@ -331,7 +409,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckww0tlau000bkgvsgjjr4ljv" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckx63kpqm000e6gvs2xdm8cn9" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
       
       
       
@@ -372,7 +450,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckww0tlak0001kgvs2e3shku2" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckx63kpqg00056gvs0rrb9fp5" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
       
       
       
@@ -423,7 +501,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckww0tlax000dkgvs9vde5zgb" data-title="Hello World" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckx63kpqr000j6gvshvfcdkqn" data-title="Hello World" class="article-share-link">Поделиться</a>
       
       
       
@@ -485,6 +563,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
           </li>
         
@@ -498,10 +580,6 @@
         
           <li>
             <a href="/2021/11/18/progressive-delay-pattern/">Шаблон увеличивающегося интервала повторения запроса</a>
-          </li>
-        
-          <li>
-            <a href="/2021/10/21/cursor-paging/">Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core</a>
           </li>
         
       </ul>
