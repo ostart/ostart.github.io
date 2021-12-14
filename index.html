@@ -77,6 +77,56 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-simplify-queries" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/14/simplify-queries/" class="article-date">
+  <time class="dt-published" datetime="2021-12-14T13:47:36.000Z" itemprop="datePublished">14-12-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/14/simplify-queries/">Использование let для упрощения LINQ запросов</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Бывает при выполнении LINQ запросов требуются промежуточные преобразования с переменными запроса. Обычно это достигается с помощью LINQ оператора let. </p>
+<p>Мощь этого оператора рассмотрим на следующем примере. Допустим у нас есть класс Employee вида:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Employee</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> ID &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Name &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Department &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Address &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> PostalCode &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Salary &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Тогда запрос с промежуточными преобразованиями может выглядить так:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> employeesWithAddress = </span><br><span class="line">    (</span><br><span class="line">        <span class="keyword">from</span> employee <span class="keyword">in</span> Employees</span><br><span class="line">        <span class="keyword">let</span> fullAddress = <span class="string">$&quot;<span class="subst">&#123;employee.PostalCode&#125;</span>, <span class="subst">&#123;employee.Address&#125;</span>&quot;</span></span><br><span class="line">        <span class="keyword">let</span> _salaryOutOk = <span class="built_in">decimal</span>.TryParse(employee.Salary, <span class="keyword">out</span> salary)</span><br><span class="line">        <span class="keyword">select</span> <span class="keyword">new</span></span><br><span class="line">        &#123;</span><br><span class="line">            employee.ID,</span><br><span class="line">            employee.Name,</span><br><span class="line">            fullAddress,</span><br><span class="line">            salary</span><br><span class="line">        &#125;</span><br><span class="line">    ).ToList();</span><br></pre></td></tr></table></figure>
+
+<p>В коде выше понятно использование промежуточного преобразования с помощью оператора <em>let</em> для <em>fullAddress</em>. Для <em>salary</em> же происходит преобразование из строкового типа в <em>decimal</em>, причём результат преобразования попадает в <em>out</em> переменную <em>salary</em>, а переменной <em>_salaryOutOk</em> можно пренебречь.</p>
+<p>Всё это делает код чище и яснее, иначе преобразование для <em>fullAddress</em> пришлось бы выносить прямо в проекцию <em>select</em>, а конструкцию <em>decimal.TryParse</em> вообще бы не удалось вынести в проекцию, так что альтернативы <em>let</em> нет.</p>
+<p>Let в LINQ - это сила!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/12/14/simplify-queries/" data-id="ckx69fnql0014eovs1k2iaiuv" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-distinct-objects" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/14/distinct-objects/" class="article-date">
@@ -115,7 +165,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx65quvo000a1ovshvtdfmkr" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx69fnq3000aeovs7vjgfylz" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -180,7 +230,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx65quv900031ovsgt3p1vty" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx69fnpy0003eovsc3yph1zi" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -240,7 +290,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx65quw8000x1ovs2syk3myf" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx69fnqj000zeovsa15sh749" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -320,7 +370,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx65quwd000z1ovsej3yh2ff" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx69fnqh000xeovsewz1310f" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -365,7 +415,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx65quw0000m1ovs8xijgwi7" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx69fnqc000meovse2wf3xzd" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
@@ -410,7 +460,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx65quw7000w1ovsfhc5e32h" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx69fnqg000weovsbbad78g3" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
       
       
       
@@ -497,7 +547,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx65quvm00081ovs65sf3um1" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx69fnq4000beovsh5873i6d" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
       
       
       
@@ -552,7 +602,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx65quw6000u1ovs0ojy17js" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx69fnqf000teovs2d9283p1" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
       
       
       
@@ -613,68 +663,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckx65quwi00181ovs4orj9vfn" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckx69fnqq001eeovs8akqg18o" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-enum-is-defined-csharp" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/09/18/enum-is-defined-csharp/" class="article-date">
-  <time class="dt-published" datetime="2021-09-18T06:20:27.000Z" itemprop="datePublished">18-09-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/09/18/enum-is-defined-csharp/">Enum.IsDefined и его самодельная альтернатива</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Работа с перечислениями <em>Enum</em> в C# имеет очень большие издержки. Это странно, т.к. перечисления целочисленны по своей природе, но из-за требований безопасности типов даже простые операции обходятся дорого. Подробно этот аспект освещён в книге <strong>Бена Уотсона “Высокопроизводительный код на платформе .NET” (2-е издание)</strong> в главе 6 <em>“Использование среды .NET Framework”</em> раздел <em>“Удивительно высокие издержки использования перечислений”</em>. Там рассмотрено внутреннее устройство метода <em>Enum.HasFlag</em>. Анализ же метода <em>Enum.IsDefined</em> оставлен в виде домашнего задания. Займёмся анализом, учтя основную рекомендацию Бена: <strong>“если окажется, что проверять наличие флага приходится часто, реализуйте проверку самостоятельно”</strong>. Посмотрим внутренее устройство <em>Enum.IsDefined</em>, реализуем самодельную альтернативу <em>MyEnum.MyIsDefined</em> и сравним их в деле.</p>
-<p><strong>ILSpy</strong> показывает следующее устройство метода <em>Enum.IsDefined</em>:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// System.Enum</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">bool</span> <span class="title">IsDefined</span>(<span class="params">Type enumType, <span class="built_in">object</span> <span class="keyword">value</span></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="built_in">object</span>)enumType == <span class="literal">null</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string">&quot;enumType&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> enumType.IsEnumDefined(<span class="keyword">value</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// System.Type</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="built_in">bool</span> <span class="title">IsEnumDefined</span>(<span class="params"><span class="built_in">object</span> <span class="keyword">value</span></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> (<span class="keyword">value</span> == <span class="literal">null</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentNullException(<span class="string">&quot;value&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (!IsEnum)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentException(SR.Arg_MustBeEnum, <span class="string">&quot;value&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	Type type = <span class="keyword">value</span>.GetType();</span><br><span class="line">	<span class="keyword">if</span> (type.IsEnum)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (!type.IsEquivalentTo(<span class="keyword">this</span>))</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentException(SR.Format(SR.Arg_EnumAndObjectMustBeSameType, type, <span class="keyword">this</span>));</span><br><span class="line">		&#125;</span><br><span class="line">		type = type.GetEnumUnderlyingType();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (type == <span class="keyword">typeof</span>(<span class="built_in">string</span>))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">string</span>[] enumNames = GetEnumNames();</span><br><span class="line">		<span class="built_in">object</span>[] array = enumNames;</span><br><span class="line">		<span class="keyword">if</span> (Array.IndexOf(array, <span class="keyword">value</span>) &gt;= <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (IsIntegerType(type))</span><br><span class="line">	&#123;</span><br><span class="line">		Type enumUnderlyingType = GetEnumUnderlyingType();</span><br><span class="line">		<span class="keyword">if</span> (enumUnderlyingType.GetTypeCodeImpl() != type.GetTypeCodeImpl())</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> ArgumentException(SR.Format(SR.Arg_EnumUnderlyingTypeAndObjectMustBeSameType, type, enumUnderlyingType));</span><br><span class="line">		&#125;</span><br><span class="line">		Array enumRawConstantValues = GetEnumRawConstantValues();</span><br><span class="line">		<span class="keyword">return</span> BinarySearch(enumRawConstantValues, <span class="keyword">value</span>) &gt;= <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">throw</span> <span class="keyword">new</span> InvalidOperationException(SR.InvalidOperation_UnknownEnumType);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Выглядит этот код сложно, причем я не привожу ещё реализации многочисленных внутренних функций типа <em>GetEnumUnderlyingType</em>, <em>GetEnumRawConstantValues</em> и др., чтобы не загромождать повествование. Видно, что в <em>Enum.IsDefined</em> можно передать и численное значение <em>int</em>, и имя в виде строки, и аргумент в виде значения преречисления <em>PetType.Dog</em> - во всех случаях метод проверит есть ли такое значение в перечислении (вернёт True, если есть, либо False, если нет).</p>
-<p>Реализуем метод <em>Enum.IsDefined</em> самостоятельно. Для этого преобразуем перечисление в словарь <em>equivalentEnumDictionary</em> внутри класса <em>MyEnum</em>. Тогда эквивалентом метода <em>Enum.IsDefined</em> будет метод <em>MyEnum.MyIsDefined</em> с таким же набором входных аргументов:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> System.Linq;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title">EnumSharp</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">class</span> <span class="title">MyEnum</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> Dictionary&lt;<span class="built_in">int</span>, <span class="built_in">string</span>&gt; equivalentEnumDictionary;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">bool</span> <span class="title">MyIsDefined</span>(<span class="params">Type enumType, <span class="built_in">object</span> <span class="keyword">value</span></span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (equivalentEnumDictionary == <span class="literal">null</span>) </span><br><span class="line">            &#123;</span><br><span class="line">                equivalentEnumDictionary = Enum.GetValues(enumType)</span><br><span class="line">                                               .Cast&lt;<span class="built_in">object</span>&gt;()</span><br><span class="line">                                               .ToDictionary(k =&gt; (<span class="built_in">int</span>)k, v =&gt; ((Enum)v).ToString());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">value</span> <span class="keyword">is</span> <span class="built_in">int</span> &amp;&amp; equivalentEnumDictionary.ContainsKey((<span class="built_in">int</span>)<span class="keyword">value</span>))</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">value</span> <span class="keyword">is</span> <span class="built_in">string</span> &amp;&amp; equivalentEnumDictionary.ContainsValue((<span class="built_in">string</span>)<span class="keyword">value</span>))</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">value</span>.GetType() == enumType &amp;&amp; equivalentEnumDictionary.ContainsValue(<span class="keyword">value</span>.ToString()))</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>; </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Преобразование перечисления в словарь произойдёт единожды при первом обращении к методу <em>MyEnum.MyIsDefined</em>.</p>
-<p><strong>Примечание</strong>: LINQ преобразование в словарь я также пробовал в виде <code>.ToDictionary(k =&gt; (int)k, v =&gt; v.ToString())</code> и <code>.ToDictionary(k =&gt; (int)k, v =&gt; Enum.GetName(enumType, (int)v))</code>. Вариант, представленный в теле метода <em>MyIsDefined</em>, оказался самым шустрым.</p>
-<p>Теперь сравним насколько самостоятельная проверка быстрее встроенной. Для этого воспользуемся библиотекой <strong>BenchmarkDotNet</strong>:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> BenchmarkDotNet.Attributes;</span><br><span class="line"><span class="keyword">using</span> BenchmarkDotNet.Running;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title">EnumSharp</span></span><br><span class="line">&#123;</span><br><span class="line">    [<span class="meta">Flags</span>] </span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">enum</span> PetType</span><br><span class="line">    &#123;</span><br><span class="line">        None = <span class="number">0</span>, Dog = <span class="number">1</span>, Cat = <span class="number">2</span>, Rodent = <span class="number">4</span>, Bird = <span class="number">8</span>, Reptile = <span class="number">16</span>, Other = <span class="number">32</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">EnumsBenchmark</span></span><br><span class="line">    &#123;</span><br><span class="line">        [<span class="meta">Benchmark</span>]</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">MethodEnumIsDefined</span>(<span class="params"></span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">bool</span> result;</span><br><span class="line"></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">1</span>); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">64</span>); <span class="comment">// false</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;Rodent&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog | PetType.Cat); <span class="comment">// false</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;None&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = Enum.IsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;NONE&quot;</span>); <span class="comment">// false</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        [<span class="meta">Benchmark</span>]</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">MethodMyIsDefined</span>(<span class="params"></span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">bool</span> result;</span><br><span class="line"></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">1</span>); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="number">64</span>); <span class="comment">// false</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;Rodent&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), PetType.Dog | PetType.Cat); <span class="comment">// false</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;None&quot;</span>); <span class="comment">// true</span></span><br><span class="line">            result = MyEnum.MyIsDefined(<span class="keyword">typeof</span>(PetType), <span class="string">&quot;NONE&quot;</span>); <span class="comment">// false</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">var</span> summary = BenchmarkRunner.Run&lt;EnumsBenchmark&gt;();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Вот результаты:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|              Method |     Mean |    Error |   StdDev |</span><br><span class="line">|-------------------- |---------:|---------:|---------:|</span><br><span class="line">| MethodEnumIsDefined | 845.3 ns | 15.14 ns | 13.42 ns |</span><br><span class="line">|   MethodMyIsDefined | 350.2 ns |  6.95 ns |  6.83 ns |</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>Получается, что самостоятельная проверка <em>MyEnum.MyIsDefined</em> более чем в два раза быстрее даже при такой прямолинейной реализации. Стоит согласиться с Беном Уотсоном, что если проверять <em>Enum.IsDefined</em> приходится часто, то реализация самостоятельной проверки даст существенную выгоду по быстродействию. При обычном сценарии достаточно пользоваться встроенной <em>Enum.IsDefined</em>.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckx65quvp000b1ovs9b12hpnp" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li></ul>
 
     </footer>
   </div>
@@ -734,6 +727,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/14/simplify-queries/">Использование let для упрощения LINQ запросов</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/14/distinct-objects/">Особенности Distinct на коллекциях объектов ссылочной природы</a>
           </li>
         
@@ -747,10 +744,6 @@
         
           <li>
             <a href="/2021/12/07/rpm-package/">RPM-пакет</a>
-          </li>
-        
-          <li>
-            <a href="/2021/11/18/left-join/">Выполнение Left Join запросов в LINQ</a>
           </li>
         
       </ul>
