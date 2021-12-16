@@ -77,6 +77,54 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-sync-code-from-async-code" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/16/sync-code-from-async-code/" class="article-date">
+  <time class="dt-published" datetime="2021-12-16T11:44:13.000Z" itemprop="datePublished">16-12-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/16/sync-code-from-async-code/">Вызов синхронного кода из асинхронного</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Бывает возникает потребность асинхронно использовать синхронный метод.<br>Вот какой приём нам может в этом помочь, если требуется возвращать из метода значение:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">async</span> Task&lt;<span class="built_in">bool</span>&gt; <span class="title">EnvelopeMethodAsync</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">bool</span> result = MethodSync();</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> Task.FromResult(result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Если же метод должен возвращать Task и внутри вызывать void, тогда:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">async</span> Task <span class="title">EnvelopeMethodAsync</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    MethodSync();</span><br><span class="line">    <span class="keyword">await</span> Task.CompletedTask;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Если просто вызывать синхронные методы внутри асинхронных и по счастливой случайности нам не встретится ни один await оператор какого-нибудь другого асинхронного метода, то компилятор будет выдавать предупреждение о нехватке await оператора. Потенциально это может нести ошибки, т.к. его можно просто забыть указать в async методе. Если это так, то метод без await и его вызывающий код продолжат одновременное выполнение и метод который не эвэйтят (await) может преждевременно прекратить работу с окончанием работы вызывающего его кода. Также проблема async метода который не эвейтят может произойти в случае возникновения исключения в нём, которое не будет отловлено вызывающим кодом.</p>
+<p>Может показаться, зачем столько заморочек только чтобы не ругался компилятор. На самом деле код становится чище явно выражая свои намерения и разработчику, которому предстоит поддерживать его в будущем. Не надо сомневаться насчёт забытого случайно или не поставленного преднамеренно await.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/12/16/sync-code-from-async-code/" data-id="ckx8yj3ta001988vsfht2f0l7" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-valuetask" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/16/valuetask/" class="article-date">
@@ -126,7 +174,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="ckx8w6buo001er0vs4i9heqmv" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="ckx8yj3u8005k88vs3kdtddl8" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
       
       
       
@@ -176,7 +224,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckx8w6bub000mr0vsbzuvc8zx" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckx8yj3sy000o88vs52lf284z" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
       
       
       
@@ -228,7 +276,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx8w6bu2000br0vs7dru6vx9" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx8yj3sm000988vs8rlfda4a" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -293,7 +341,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx8w6btn0000r0vs31b82asm" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx8yj3s9000288vs1m8l11q3" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -353,7 +401,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx8w6bug000yr0vshmc97op6" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx8yj3t3000z88vsfzvu1yw5" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -433,7 +481,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx8w6buf000wr0vs6qmb7blv" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx8yj3t1000u88vs9fekdupx" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -478,7 +526,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx8w6bu9000kr0vscnan1abq" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx8yj3sv000j88vsekylbx8m" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
@@ -523,7 +571,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx8w6bue000vr0vs1ijr1yso" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx8yj3t0000t88vsfmh37ni8" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
       
       
       
@@ -610,7 +658,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx8w6bu00008r0vsaye75qce" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx8yj3sl000888vsb9wt7ay2" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
       
       
       
@@ -624,66 +672,11 @@
 
 
   
-    <article id="post-owin" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/10/07/owin/" class="article-date">
-  <time class="dt-published" datetime="2021-10-07T11:09:48.000Z" itemprop="datePublished">07-10-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/10/07/owin/">Добавляем WebAPI в Windows-службу</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>В предыдущей статье мы рассмотрели <a href="https://ostart.github.io/2021/09/30/topshelf/">создание Windows-службы с помощью фреймворка TopShelf</a>. Но затем мне поднадобилось добавить возможности WebAPI в нашу службу. Рассмотрим как это можно сделать. </p>
-<p>Тут нам поможет <em>OWIN</em>. С помощью <strong>NuGet Package Manager</strong> устанавливаем пакет в наш проект службы:</p>
-<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nuget <span class="built_in">Install-Package</span> Microsoft.AspNet.WebApi.OwinSelfHost </span><br></pre></td></tr></table></figure>
-
-<p>Затем конфигурируем наш self-host WebAPI путём создания <em>Startup.cs</em> файла следующего вида:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Net.Http.Formatting;</span><br><span class="line"><span class="keyword">using</span> Owin;</span><br><span class="line"><span class="keyword">using</span> System.Web.Http;</span><br><span class="line"><span class="keyword">using</span> System.Web.Http.Cors;</span><br><span class="line"><span class="keyword">using</span> Newtonsoft.Json;</span><br><span class="line"><span class="keyword">using</span> Newtonsoft.Json.Converters;</span><br><span class="line"><span class="keyword">using</span> Newtonsoft.Json.Serialization;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Startup</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Don&#x27;t delete! This code configures Web API. </span></span><br><span class="line">    <span class="comment">// The Startup class is specified as a type parameter in the WebApp.Start method</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Configuration</span>(<span class="params">IAppBuilder appBuilder</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">var</span> config = <span class="keyword">new</span> HttpConfiguration(); <span class="comment">// Configure Web API for self-host</span></span><br><span class="line">        config.Routes.MapHttpRoute(</span><br><span class="line">            name: <span class="string">&quot;DefaultApi&quot;</span>,</span><br><span class="line">            routeTemplate: <span class="string">&quot;api/&#123;controller&#125;/&#123;id&#125;&quot;</span>,</span><br><span class="line">            defaults: <span class="keyword">new</span> &#123; id = RouteParameter.Optional &#125;</span><br><span class="line">        );</span><br><span class="line">        config.Formatters.Clear();</span><br><span class="line">        config.Formatters.Add(<span class="keyword">new</span> JsonMediaTypeFormatter());</span><br><span class="line">        config.Formatters.JsonFormatter.SerializerSettings =</span><br><span class="line">            <span class="keyword">new</span> JsonSerializerSettings</span><br><span class="line">            &#123;</span><br><span class="line">                ContractResolver = <span class="keyword">new</span> CamelCasePropertyNamesContractResolver()</span><br><span class="line">            &#125;;</span><br><span class="line">        config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(<span class="keyword">new</span> StringEnumConverter());</span><br><span class="line">        <span class="keyword">var</span> cors = <span class="keyword">new</span> EnableCorsAttribute(<span class="string">&quot;*&quot;</span>, <span class="string">&quot;*&quot;</span>, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">        config.EnableCors(cors);</span><br><span class="line">        appBuilder.UseWebApi(config);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Выше происходит настройка роутинга, JSON формата запроса/ответа и cors.</p>
-<p>Далее в проект требуется добавить WebAPI контроллер. Для примера возьмём контроллер из <a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/aspnet/web-api/overview/hosting-aspnet-web-api/use-owin-to-self-host-web-api">оригинальной статьи на сайте Microsoft</a>, т.к. используемые мною контроллеры только загромоздят суть повествования излишним содержимым:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> System.Web.Http;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ValuesController</span> : <span class="title">ApiController</span> </span><br><span class="line">&#123; </span><br><span class="line">    <span class="comment">// GET api/values </span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> IEnumerable&lt;<span class="built_in">string</span>&gt; <span class="title">Get</span>(<span class="params"></span>)</span> </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">string</span>[] &#123; <span class="string">&quot;value1&quot;</span>, <span class="string">&quot;value2&quot;</span> &#125;; </span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// GET api/values/5 </span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="built_in">string</span> <span class="title">Get</span>(<span class="params"><span class="built_in">int</span> id</span>)</span> </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;value&quot;</span>; </span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// POST api/values </span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Post</span>(<span class="params">[FromBody]<span class="built_in">string</span> <span class="keyword">value</span></span>)</span> </span><br><span class="line">    &#123; </span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// PUT api/values/5 </span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Put</span>(<span class="params"><span class="built_in">int</span> id, [FromBody]<span class="built_in">string</span> <span class="keyword">value</span></span>)</span> </span><br><span class="line">    &#123; </span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// DELETE api/values/5 </span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Delete</span>(<span class="params"><span class="built_in">int</span> id</span>)</span> </span><br><span class="line">    &#123; </span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Теперь отредактируем Program.cs файл Windows-службы для одновременного запуска с WebAPI:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> Topshelf;</span><br><span class="line"><span class="keyword">using</span> Microsoft.Owin.Hosting;</span><br><span class="line"><span class="keyword">using</span> System.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Program</span> </span><br><span class="line">&#123; </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="built_in">string</span> ServiceName = <span class="string">&quot;Authentication and WebAPI service&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"></span>)</span> </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">var</span> port = ConfigurationManager.AppSettings[<span class="string">&quot;Port&quot;</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> options = <span class="keyword">new</span> StartOptions();</span><br><span class="line">        options.Urls.Add(<span class="string">$&quot;http://*:<span class="subst">&#123;port&#125;</span>/&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">using</span> (WebApp.Start&lt;Startup&gt;(options)) <span class="comment">// Start OWIN host </span></span><br><span class="line">        &#123;</span><br><span class="line">            HostFactory.Run(config =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                config.StartAutomatically(); <span class="comment">// startup type</span></span><br><span class="line">                config.EnableShutdown();</span><br><span class="line">                config.Service&lt;AuthApiService&gt;(service =&gt;</span><br><span class="line">                &#123;</span><br><span class="line">                    service.ConstructUsing(svc =&gt; <span class="keyword">new</span> AuthApiService());</span><br><span class="line">                    service.WhenStarted(svc =&gt; svc.Start());</span><br><span class="line">                    service.WhenStopped(svc =&gt; svc.Stop());</span><br><span class="line">                &#125;);</span><br><span class="line">                config.RunAsLocalSystem();</span><br><span class="line">                config.SetServiceName(ServiceName);</span><br><span class="line">                config.SetDisplayName(ServiceName);</span><br><span class="line">                config.SetDescription(ServiceName);</span><br><span class="line">                config.EnableServiceRecovery(service =&gt;</span><br><span class="line">                &#123;</span><br><span class="line">                    service.OnCrashOnly();</span><br><span class="line">                    service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// first failure</span></span><br><span class="line">                    service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// second failure</span></span><br><span class="line">                    service.RestartService(delayInMinutes: <span class="number">1</span>); <span class="comment">// subsequent failures</span></span><br><span class="line">                    service.SetResetPeriod(days: <span class="number">1</span>); <span class="comment">// reset period for restart options</span></span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; </span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
-
-<p>В результате WebAPI начинает прослушивать все входящие запросы на порт, считанный из файла конфигурации и работает Windows-служба, разработанная с помощью фреймворка Topshelf. Вот так вота! Или как говорят французы: Вуаля!</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx8w6bud000tr0vs57hs97ue" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Вперед &raquo;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">Вперед &raquo;</a>
   </nav>
 
 </section>
@@ -729,6 +722,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/16/sync-code-from-async-code/">Вызов синхронного кода из асинхронного</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
           </li>
         
@@ -742,10 +739,6 @@
         
           <li>
             <a href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
           </li>
         
       </ul>

@@ -4,23 +4,20 @@
   <meta charset="utf-8">
   
   
-  <title>Структура SNMP запроса get-request | Artemio&#39;s Blog</title>
+  <title>Вызов синхронного кода из асинхронного | Artemio&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:   Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего м">
+  <meta name="description" content="Бывает возникает потребность асинхронно использовать синхронный метод.Вот какой приём нам может в этом помочь, если требуется возвращать из метода значение: 12345async Task&lt;bool&gt; EnvelopeMethodA">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Структура SNMP запроса get-request">
-<meta property="og:url" content="https://ostart.github.io/2021/08/12/snmp-request-structure/index.html">
+<meta property="og:title" content="Вызов синхронного кода из асинхронного">
+<meta property="og:url" content="https://ostart.github.io/2021/12/16/sync-code-from-async-code/index.html">
 <meta property="og:site_name" content="Artemio&#39;s Blog">
-<meta property="og:description" content="Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:   Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего м">
+<meta property="og:description" content="Бывает возникает потребность асинхронно использовать синхронный метод.Вот какой приём нам может в этом помочь, если требуется возвращать из метода значение: 12345async Task&lt;bool&gt; EnvelopeMethodA">
 <meta property="og:locale" content="ru_RU">
-<meta property="og:image" content="https://ostart.github.io/2021/08/12/snmp-request-structure/get-request.jpg">
-<meta property="article:published_time" content="2021-08-12T10:07:11.000Z">
-<meta property="article:modified_time" content="2021-08-12T12:46:26.463Z">
+<meta property="article:published_time" content="2021-12-16T11:44:13.000Z">
+<meta property="article:modified_time" content="2021-12-16T12:46:40.085Z">
 <meta property="article:author" content="Artem Ostashchenko">
-<meta property="article:tag" content="SNMP">
-<meta property="article:tag" content="get-request">
+<meta property="article:tag" content="C#">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://ostart.github.io/2021/08/12/snmp-request-structure/get-request.jpg">
   
     <link rel="alternate" href="/atom.xml" title="Artemio's Blog" type="application/atom+xml">
   
@@ -83,10 +80,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-snmp-request-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-sync-code-from-async-code" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/08/12/snmp-request-structure/" class="article-date">
-  <time class="dt-published" datetime="2021-08-12T10:07:11.000Z" itemprop="datePublished">12-08-2021</time>
+    <a href="/2021/12/16/sync-code-from-async-code/" class="article-date">
+  <time class="dt-published" datetime="2021-12-16T11:44:13.000Z" itemprop="datePublished">16-12-2021</time>
 </a>
     
   </div>
@@ -97,7 +94,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Структура SNMP запроса get-request
+      Вызов синхронного кода из асинхронного
     </h1>
   
 
@@ -105,19 +102,23 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:</p>
-<img src="/2021/08/12/snmp-request-structure/get-request.jpg" class="" title="Структура SNMP запроса get-request (Wireshark)">
+        <p>Бывает возникает потребность асинхронно использовать синхронный метод.<br>Вот какой приём нам может в этом помочь, если требуется возвращать из метода значение:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">async</span> Task&lt;<span class="built_in">bool</span>&gt; <span class="title">EnvelopeMethodAsync</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">bool</span> result = MethodSync();</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> Task.FromResult(result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего массива пришедших байтов (0x2C<sub>16</sub> = 44<sub>10</sub>). Пятый байт 0x00 показывает номер версии version-1, за которым следует указатель community и байт его длины 0x06 (6 байт). Значение community начинается в нашем случае с 8-го байта и идёт до 13 байта включительно (0x70 0x75 0x62 0x6C 0x69 0x63). Дальше следуют байты данных самого get-request: открывающий байт 0xA0, длина последующих байтов 0x1F (31 байт), открывающий байт идентификатора запроса 0x02 и длина request-id 0x04. Значение request-id начинается с 18 байта и идёт в нашем случае до 21 байта (0x0B 0x5E 0xA0 0x42), что составляет значение 190750786. Аналогичная величина request-id должна присутствовать в SNMP ответе get-response. Далее 24-м байтом идёт error-status, 27-м байтом идёт error-index, а 33-м байтом идёт длина переданного OID 0x0B (11 байтов): 0x2B 0x06 0x01 0x02 0x01 0x2B 0x05 0x01 0x01 0x11 0x01, что составляет значение 1.3.6.1.2.1.43.5.1.1.17.1. Именно на это значение OID отвечает устройство в ответ. Алгоритм того, как одиннадцать вышеперечисленных байтов превращаются в вышеуказанный OID можно найти в статье <a href="https://ostart.github.io/2021/08/12/simple-snmp-server/">Простой SNMP сервер на C#</a>. SNMP пакет завершается байтами 0x05 0x00.</p>
+<p>Если же метод должен возвращать Task и внутри вызывать void, тогда:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">async</span> Task <span class="title">EnvelopeMethodAsync</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    MethodSync();</span><br><span class="line">    <span class="keyword">await</span> Task.CompletedTask;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Если просто вызывать синхронные методы внутри асинхронных и по счастливой случайности нам не встретится ни один await оператор какого-нибудь другого асинхронного метода, то компилятор будет выдавать предупреждение о нехватке await оператора. Потенциально это может нести ошибки, т.к. его можно просто забыть указать в async методе. Если это так, то метод без await и его вызывающий код продолжат одновременное выполнение и метод который не эвэйтят (await) может преждевременно прекратить работу с окончанием работы вызывающего его кода. Также проблема async метода который не эвейтят может произойти в случае возникновения исключения в нём, которое не будет отловлено вызывающим кодом.</p>
+<p>Может показаться, зачем столько заморочек только чтобы не ругался компилятор. На самом деле код становится чище явно выражая свои намерения и разработчику, которому предстоит поддерживать его в будущем. Не надо сомневаться насчёт забытого случайно или не поставленного преднамеренно await.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckx8yj3t5001488vshe502210" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/sync-code-from-async-code/" data-id="ckx8yj3ta001988vsfht2f0l7" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
 
     </footer>
   </div>
@@ -125,19 +126,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2021/08/12/snmp-response-structure/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Следующий</strong>
-      <div class="article-nav-title">
-        
-          Структура SNMP ответа get-response
-        
-      </div>
-    </a>
   
-  
-    <a href="/2021/08/03/pragmatic-programmer/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2021/12/16/valuetask/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Предыдущий</strong>
-      <div class="article-nav-title">О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта</div>
+      <div class="article-nav-title">Особенности работы ValueTask</div>
     </a>
   
 </nav>

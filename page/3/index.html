@@ -77,6 +77,50 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-snmp-response-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/08/12/snmp-response-structure/" class="article-date">
+  <time class="dt-published" datetime="2021-08-12T11:36:55.000Z" itemprop="datePublished">12-08-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/08/12/snmp-response-structure/">Структура SNMP ответа get-response</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Давайте взглянем на структуру SNMP ответа get-response с помощью Wireshark:</p>
+<img src="/2021/08/12/snmp-response-structure/get-response.jpg" class="" title="Структура SNMP ответа get-response (Wireshark)">
+
+<p>Пакет начинается с байта 0x30 и содержит в нашем примере всего 59 байтов. Второй байт 0x39 показывает длину последующего массива отправляемых байтов (0x39<sub>16</sub> = 57<sub>10</sub>). Пятый байт 0x00 показывает номер версии version-1, за которым следует указатель community и байт его длины 0x06 (6 байт). Значение community начинается в нашем случае с 8-го байта и идёт до 13 байта включительно (0x70 0x75 0x62 0x6C 0x69 0x63). Дальше следуют байты данных самого get-response: открывающий байт 0xA2, длина последующих байтов 0x2C (44 байта), открывающий байт идентификатора запроса 0x02 и длина request-id 0x04. Значение request-id начинается с 18 байта и идёт в нашем случае до 21 байта (0x0B 0x5E 0xA0 0x42), что составляет значение 190750786. Величина request-id соответствует величине request-id пришедшего в SNMP запросе get-request. Далее 24-м байтом идёт error-status, 27-м байтом идёт error-index, а 28-м байтом идёт открывающий байт 0x30 и длина последующих байтов 0x1E (30 байтов). 30-м байтом идёт открывающий байт 0x30 и длина последующих байтов 0x1С (28 байтов). Затем опять повторяется OID, пришедший в запросе get-request, а именно байт длины 0x0B (11 байтов) и их значение: 0x2B 0x06 0x01 0x02 0x01 0x2B 0x05 0x01 0x01 0x11 0x01, что составляет значение 1.3.6.1.2.1.43.5.1.1.17.1. Далее 45-м байтом идёт байт 0x04, что означает что далее последует значение в OctetString и 46-м байтом следует длина последующего значения 0x0D (13 байтов): 0x41 0x37 0x39 0x38 0x30 0x32 0x37 0x35 0x34 0x31 0x32 0x34 0x36, что является серийным номером МФУ А798027541246.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckx8yj3t5001288vshfnjdb8e" data-title="Структура SNMP ответа get-response" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-snmp-request-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/08/12/snmp-request-structure/" class="article-date">
@@ -107,7 +151,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckx8w6bui0015r0vsg6ol2l2p" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckx8yj3t5001488vshe502210" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
       
       
       
@@ -253,7 +297,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckx8w6buh0010r0vsb7dbenav" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckx8yj3t2000x88vsfr8m7wke" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
       
       
       
@@ -311,7 +355,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckx8w6bvh005jr0vsckyx07ea" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckx8yj3u9005l88vsdjoq4scw" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Поделиться</a>
       
       
       
@@ -389,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckx8w6bud000rr0vsac8tec6u" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckx8yj3sz000r88vs42zp7y0b" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Поделиться</a>
       
       
       
@@ -457,7 +501,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckx8w6buc000or0vsghmef0q3" data-title="О NSIS" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckx8yj3sx000m88vs6094fw17" data-title="О NSIS" class="article-share-link">Поделиться</a>
       
       
       
@@ -509,7 +553,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckx8w6bum001ar0vs0obp335o" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckx8yj3t9001788vshxsof07f" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
       
       
       
@@ -576,7 +620,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckx8w6bul0019r0vs41v94nak" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckx8yj3ta001b88vs2abs9uj4" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
       
       
       
@@ -657,7 +701,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckx8w6bu6000fr0vsbrb1dqjq" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckx8yj3sp000c88vshhpx2xrm" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
       
       
       
@@ -698,58 +742,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckx8w6btv0003r0vscw4p1au1" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/03/hello-world/" class="article-date">
-  <time class="dt-published" datetime="2021-06-03T04:07:58.089Z" itemprop="datePublished">03-06-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/03/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckx8w6bu7000hr0vsh6q665ow" data-title="Hello World" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckx8yj3s0000088vsc1aj8mfe" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
       
       
       
@@ -765,7 +758,7 @@
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Назад</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Назад</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Вперед &raquo;</a>
   </nav>
 
 </section>
@@ -811,6 +804,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/16/sync-code-from-async-code/">Вызов синхронного кода из асинхронного</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
           </li>
         
@@ -824,10 +821,6 @@
         
           <li>
             <a href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
           </li>
         
       </ul>
