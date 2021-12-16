@@ -77,6 +77,69 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-valuetask" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/16/valuetask/" class="article-date">
+  <time class="dt-published" datetime="2021-12-16T10:01:15.000Z" itemprop="datePublished">16-12-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Класс <code>Task</code> и <code>Task&lt;T&gt;</code> являются ссылочными типами и потому для них выделяется память на куче каждый раз когда асинхронный метод возвращает одного из них (плюс работает сборщик мусора). А для типов-значений память выделяется в месте их определения и они никак не задействуют сборщик мусора. Также важной фишкой тасков является тот факт, что рантайм кеширует их. Вместо того чтобы эвейтить (await) метод можно просто получить ссылку на таску, возвращаемую асинхронным методом, а с этой ссылкой можно вызывать несколько задач одновременно. Также можно вызывать эту задачу более одного раза. Важно, что рантайм кэширует таску, что сказывается на потреблении памяти.</p>
+<p>Для высокопроизводительных решений большое количество выделенных объектов типа Task могут представлять проблему, поэтому возможность исключить выделение памяти для тасок в куче плюс сборку мусора может представлять выгоду.</p>
+<p>Начиная с .NET Core 2.0 в C# появились две структуры: <code>ValueTask</code> и <code>ValueTask&lt;T&gt;</code>, которые можно возвращать из асинхронных методов. Они размещаются в стэке и разработаны для увеличения производительности асинхронных методов в случаях, когда издержки на выделение памяти в куче критичны для производительности. Рантайм их не кэширует, что уменьшает выделение памяти и упрощает управление ею. Казалось бы, заменяй возвращаемый методом тип с <code>Task</code> на <code>ValueTask</code> (либо <code>Task&lt;T&gt;</code> на <code>ValueTask&lt;T&gt;</code>) и радуйся жизни, но есть пару но… как обычно…</p>
+<p>Важным условие использования структур <code>ValueTask/ValueTask&lt;T&gt;</code> является обязательность ожидания их await-ом из асинхронного метода и невозможность их повторного вызова. Это может иметь большое значение, если вы разрабатываете библиотеки переиспользуемые другими разработчиками, т.к. у них сразу исключаются сценарии одновременной параллельной работы с тасками. Тут обычным таскам нет альтернативы.</p>
+<p>Структура <code>ValueTask&lt;TResult&gt;</code> способна обернуть как <code>TResult</code>, так и <code>Task&lt;TResult&gt;</code>. Её можно возвращать из async метода, причём если этот метод выполнится синхронно, то никакого объекта в куче размещать не будет. В случае асинхронного выполнения объект <code>Task&lt;TResult&gt;</code> будет размещён в куче, а <code>ValueTask&lt;TResult&gt;</code> обернёт его, чтобы минимизировать размер структуры и оптимизировать случай успешного исполнения. Аsync метод, который завершается исключением, тоже будет размещать <code>Task&lt;TResult&gt;</code> внутри, и <code>ValueTask&lt;TResult&gt;</code> обернёт его и не будет таскать с собой дополнительное поле для хранения Exception.</p>
+<p>Поэтому важно осознавать существующие значительные ограничения в применении <code>ValueTask/ValueTask&lt;T&gt;</code> в сравнении с <code>Task/Task&lt;T&gt;</code>, если отклониться от обычного сценария простого ожидания await.</p>
+<p>Следующие операции никогда не должны выполняться с <code>ValueTask/ValueTask&lt;T&gt;</code>:</p>
+<ul>
+<li><p>Повторное ожидание <code>ValueTask/ValueTask&lt;T&gt;</code><br>Объект результата может уже быть утилизирован и использоваться в другой операции. Напротив, <code>Task/Task&lt;T&gt;</code> никогда не переходит из завершённого состояния в незавершённое, поэтому вы можете повторно ожидать его столько раз, сколько потребуется и получать один и тот же результат каждый раз.</p>
+</li>
+<li><p>Параллельное ожидание <code>ValueTask/ValueTask&lt;T&gt;</code><br>Объект результата ожидает обработки только одним callbackом от одного потребителя в один момент времени, и попытка его ожидания из разных потоков одновременно может легко привести к гонкам и трудноуловимым ошибкам программы. В сравнении с этим, <code>Task/Task&lt;T&gt;</code> обеспечивает любое количество параллельных awaitов.</p>
+</li>
+</ul>
+<p>Если из метода получили <code>ValueTask/ValueTask&lt;T&gt;</code>, но необходимо выполнить одну из двух операций вышеописанных операций, то можно использовать <code>.AsTask()</code>. После этого работать с полученной такской как обычно, однако больше вы не сможете использовать изначальный <code>ValueTask/ValueTask&lt;T&gt;</code>.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ValueTask&lt;<span class="built_in">int</span>&gt; <span class="title">SomeMethodAsync</span>(<span class="params"></span>)</span> &#123;...&#125;;</span><br><span class="line">...</span><br><span class="line">Task&lt;<span class="built_in">int</span>&gt; t = SomeMethodAsync().AsTask();</span><br></pre></td></tr></table></figure>
+
+<p>Короче говоря, при применении <code>ValueTask/ValueTask&lt;T&gt;</code> вы должны или await его непосредственно (возможно с <code>.ConfigureAwait(false))</code> или вызвать <code>.AsTask()</code> и больше его не использовать.</p>
+<p>Однако <code>ValueTask/ValueTask&lt;T&gt;</code> будет отличным выбором когда:</p>
+<ul>
+<li>вы ожидаете, что вызывать ваш метод будут только с await</li>
+<li>затраты на выделение памяти критичны для вашего приложения</li>
+<li>синхронное выполнение будет происходить часто</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="ckx8w6buo001er0vs4i9heqmv" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-let-in-linq-queries" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/14/let-in-linq-queries/" class="article-date">
@@ -113,7 +176,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckx69ma2g000nfovs0gks0i4g" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckx8w6bub000mr0vsbzuvc8zx" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
       
       
       
@@ -165,7 +228,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx69ma26000afovsarok318r" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx8w6bu2000br0vs7dru6vx9" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -230,7 +293,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx69ma1t0003fovs211w1zce" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx8w6btn0000r0vs31b82asm" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -290,7 +353,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx69ma2q0010fovs1aqu0vpi" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx8w6bug000yr0vshmc97op6" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -370,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx69ma2q000yfovsa8hzg886" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx8w6buf000wr0vs6qmb7blv" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -415,7 +478,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx69ma2f000lfovsgk1b0ac5" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx8w6bu9000kr0vscnan1abq" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
@@ -460,7 +523,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx69ma2m000vfovs3o2f2t4w" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx8w6bue000vr0vs1ijr1yso" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
       
       
       
@@ -547,7 +610,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx69ma240008fovsgm6f2566" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx8w6bu00008r0vsaye75qce" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
       
       
       
@@ -602,72 +665,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx69ma2k000tfovs8grsfctv" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="ckx8w6bud000tr0vs57hs97ue" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-topshelf" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/09/30/topshelf/" class="article-date">
-  <time class="dt-published" datetime="2021-09-30T13:05:13.000Z" itemprop="datePublished">30-09-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/09/30/topshelf/">Разрабатываем Windows-службы с помощью TopShelf</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Все, кто сталкивались с разработкой служб для операционной системы Windows, отмечали трудность отладки подобного ПО. Трудности старта разработки кода решаются шаблонами Visual Studio для Windows-служб, но вот сама отладка – очень неудобная. Приходится подключаться к запущеному процессу через Debug –&gt; Attach to Process… , выбирать процесс, ставить точку останова и т.д. Но всё изменилось когда появился <a target="_blank" rel="noopener" href="http://topshelf-project.com/">TopShelf</a>. Этот фреймворк (<em>а именно так они себя величают</em>) позволяет разрабатывать и отлаживать Windows-службы как обычные консольные приложения!</p>
-<p>Рассмотрим как разрабатывать Windows-службы с помощью <a target="_blank" rel="noopener" href="http://docs.topshelf-project.com/en/latest/">TopShelf</a>.</p>
-<p>Установить TopShelf в ваш проект можно через менеджер пакетов NuGet:</p>
-<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nuget <span class="built_in">Install-Package</span> Topshelf</span><br></pre></td></tr></table></figure>
-
-<p>Посмотреть исходный код фреймворка <strong>TopShelf</strong> можно на <a target="_blank" rel="noopener" href="https://github.com/Topshelf/Topshelf">GitHub</a></p>
-<p>Основной класс (в нашем случае <em>AuthApiService</em>) должен содержать методы <code>public void Start()</code> и <code>public void Stop()</code>, которые используются <strong>TopShelf</strong> при старте и остановке службы. В моём случае файл <em>Program.cs</em> же будет иметь следующий вид:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Topshelf;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="built_in">string</span> ServiceName = <span class="string">&quot;Authentication and WebAPI service&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        HostFactory.Run(config =&gt;</span><br><span class="line">        &#123;</span><br><span class="line">            config.StartAutomatically(); <span class="comment">// startup type</span></span><br><span class="line">            config.EnableShutdown();</span><br><span class="line">            config.Service&lt;AuthApiService&gt;(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.ConstructUsing(svc =&gt; <span class="keyword">new</span> AuthApiService());</span><br><span class="line">                service.WhenStarted(svc =&gt; svc.Start());</span><br><span class="line">                service.WhenStopped(svc =&gt; svc.Stop());</span><br><span class="line">            &#125;);</span><br><span class="line">            config.RunAsLocalSystem();</span><br><span class="line">            config.SetServiceName(ServiceName);</span><br><span class="line">            config.SetDisplayName(ServiceName);</span><br><span class="line">            config.SetDescription(ServiceName);</span><br><span class="line">            config.EnableServiceRecovery(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.OnCrashOnly();</span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// first failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// second failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">1</span>); <span class="comment">// subsequent failures</span></span><br><span class="line">                service.SetResetPeriod(days: <span class="number">1</span>); <span class="comment">// reset period for restart options</span></span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);                                          </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Всю магию делает метод <em>HostFactory.Run</em>. В нём указывается класс основного тела службы с методами <em>Start</em> и <em>Stop</em>, задаётся имя службы и описание в менеджере служб Windows (<em>Services</em>). <strong>TopShelf</strong> позволяет провести почти такую же настройку режима работы службы, которую выполняет менеджер служб Windows, в частности задать из под кого будет запускаться служба <code>RunAsLocalSystem</code> или задать параметры перезапуска в случае падения службы с помощью <code>EnableServiceRecovery</code>.</p>
-<p>Установить службу в операционную систему Windows можно из командной строки, запущенной от Администратора, прямо в папке где находится служба командой: </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AuthApiService.exe install</span><br></pre></td></tr></table></figure>
-
-<p>Удалить службу можно командой:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AuthApiService.exe uninstall</span><br></pre></td></tr></table></figure>
-
-<p>Всю магию установки и настройки службы берёт на себя <strong>Topshelf</strong>! </p>
-<p>Службу можно установить и самостоятельно, но тогда настройки из раздела <code>EnableServiceRecovery</code> применены не будут.</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc create &quot;Authentication and WebAPI service&quot; binPath=&quot;&lt;путь_к_службе&gt;\AuthService.exe&quot;</span><br></pre></td></tr></table></figure>
-
-<p>Удалить службу самостоятельно можно командой:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc delete &quot;Authentication and WebAPI service&quot;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckx69ma2x001cfovs8zjpakau" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
 
     </footer>
   </div>
@@ -727,6 +729,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/14/let-in-linq-queries/">Использование let для упрощения LINQ запросов</a>
           </li>
         
@@ -740,10 +746,6 @@
         
           <li>
             <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/07/rpm-package/">RPM-пакет</a>
           </li>
         
       </ul>

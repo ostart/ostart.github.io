@@ -77,6 +77,67 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-topshelf" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/09/30/topshelf/" class="article-date">
+  <time class="dt-published" datetime="2021-09-30T13:05:13.000Z" itemprop="datePublished">30-09-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/09/30/topshelf/">Разрабатываем Windows-службы с помощью TopShelf</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Все, кто сталкивались с разработкой служб для операционной системы Windows, отмечали трудность отладки подобного ПО. Трудности старта разработки кода решаются шаблонами Visual Studio для Windows-служб, но вот сама отладка – очень неудобная. Приходится подключаться к запущеному процессу через Debug –&gt; Attach to Process… , выбирать процесс, ставить точку останова и т.д. Но всё изменилось когда появился <a target="_blank" rel="noopener" href="http://topshelf-project.com/">TopShelf</a>. Этот фреймворк (<em>а именно так они себя величают</em>) позволяет разрабатывать и отлаживать Windows-службы как обычные консольные приложения!</p>
+<p>Рассмотрим как разрабатывать Windows-службы с помощью <a target="_blank" rel="noopener" href="http://docs.topshelf-project.com/en/latest/">TopShelf</a>.</p>
+<p>Установить TopShelf в ваш проект можно через менеджер пакетов NuGet:</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nuget <span class="built_in">Install-Package</span> Topshelf</span><br></pre></td></tr></table></figure>
+
+<p>Посмотреть исходный код фреймворка <strong>TopShelf</strong> можно на <a target="_blank" rel="noopener" href="https://github.com/Topshelf/Topshelf">GitHub</a></p>
+<p>Основной класс (в нашем случае <em>AuthApiService</em>) должен содержать методы <code>public void Start()</code> и <code>public void Stop()</code>, которые используются <strong>TopShelf</strong> при старте и остановке службы. В моём случае файл <em>Program.cs</em> же будет иметь следующий вид:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Topshelf;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="built_in">string</span> ServiceName = <span class="string">&quot;Authentication and WebAPI service&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        HostFactory.Run(config =&gt;</span><br><span class="line">        &#123;</span><br><span class="line">            config.StartAutomatically(); <span class="comment">// startup type</span></span><br><span class="line">            config.EnableShutdown();</span><br><span class="line">            config.Service&lt;AuthApiService&gt;(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.ConstructUsing(svc =&gt; <span class="keyword">new</span> AuthApiService());</span><br><span class="line">                service.WhenStarted(svc =&gt; svc.Start());</span><br><span class="line">                service.WhenStopped(svc =&gt; svc.Stop());</span><br><span class="line">            &#125;);</span><br><span class="line">            config.RunAsLocalSystem();</span><br><span class="line">            config.SetServiceName(ServiceName);</span><br><span class="line">            config.SetDisplayName(ServiceName);</span><br><span class="line">            config.SetDescription(ServiceName);</span><br><span class="line">            config.EnableServiceRecovery(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.OnCrashOnly();</span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// first failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// second failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">1</span>); <span class="comment">// subsequent failures</span></span><br><span class="line">                service.SetResetPeriod(days: <span class="number">1</span>); <span class="comment">// reset period for restart options</span></span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);                                          </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Всю магию делает метод <em>HostFactory.Run</em>. В нём указывается класс основного тела службы с методами <em>Start</em> и <em>Stop</em>, задаётся имя службы и описание в менеджере служб Windows (<em>Services</em>). <strong>TopShelf</strong> позволяет провести почти такую же настройку режима работы службы, которую выполняет менеджер служб Windows, в частности задать из под кого будет запускаться служба <code>RunAsLocalSystem</code> или задать параметры перезапуска в случае падения службы с помощью <code>EnableServiceRecovery</code>.</p>
+<p>Установить службу в операционную систему Windows можно из командной строки, запущенной от Администратора, прямо в папке где находится служба командой: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AuthApiService.exe install</span><br></pre></td></tr></table></figure>
+
+<p>Удалить службу можно командой:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AuthApiService.exe uninstall</span><br></pre></td></tr></table></figure>
+
+<p>Всю магию установки и настройки службы берёт на себя <strong>Topshelf</strong>! </p>
+<p>Службу можно установить и самостоятельно, но тогда настройки из раздела <code>EnableServiceRecovery</code> применены не будут.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc create &quot;Authentication and WebAPI service&quot; binPath=&quot;&lt;путь_к_службе&gt;\AuthService.exe&quot;</span><br></pre></td></tr></table></figure>
+
+<p>Удалить службу самостоятельно можно командой:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc delete &quot;Authentication and WebAPI service&quot;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="ckx8w6bun001cr0vsetybew0f" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-enum-is-defined-csharp" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/09/18/enum-is-defined-csharp/" class="article-date">
@@ -120,7 +181,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckx69ma2a000efovsarshdurc" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="ckx8w6bu3000cr0vs1r0edgo5" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
       
       
       
@@ -169,7 +230,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckx69ma1i0000fovsgik8455f" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="ckx8w6bts0001r0vsfl0mh3re" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
       
       
       
@@ -221,7 +282,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckx69ma27000bfovs0hi2byt5" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="ckx8w6bu5000er0vscuzzc5d4" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Поделиться</a>
       
       
       
@@ -272,7 +333,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckx69ma1z0004fovs9ow78i8z" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="ckx8w6btw0004r0vs6yppdyvd" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Поделиться</a>
       
       
       
@@ -319,7 +380,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckx69ma2d000ifovsghynfhzn" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="ckx8w6bu8000ir0vs3f6bg2ni" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Поделиться</a>
       
       
       
@@ -375,7 +436,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckx69ma200005fovs2s48e55k" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/07/clearscript/" data-id="ckx8w6btx0005r0vs12jkcp78" data-title="ClearScript. Добавь скрипты в своё .NET приложение" class="article-share-link">Поделиться</a>
       
       
       
@@ -435,7 +496,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckx69ma220007fovs7ktk9gdz" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/22/concurrency-with-httpclient/" data-id="ckx8w6bu10009r0vs3bk2emlh" data-title="Особенности потоко-безопасного использования класса HttpClient при отправке Http Headers" class="article-share-link">Поделиться</a>
       
       
       
@@ -477,7 +538,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckx69ma2r0013fovs6dcd8aue" data-title="Простой SNMP сервер на C#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="ckx8w6bui0013r0vscnf26ey3" data-title="Простой SNMP сервер на C#" class="article-share-link">Поделиться</a>
       
       
       
@@ -521,55 +582,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckx69ma2u0017fovs6w7h9idu" data-title="Структура SNMP ответа get-response" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="ckx8w6buj0017r0vs4kqb10vv" data-title="Структура SNMP ответа get-response" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-snmp-request-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/08/12/snmp-request-structure/" class="article-date">
-  <time class="dt-published" datetime="2021-08-12T10:07:11.000Z" itemprop="datePublished">12-08-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/08/12/snmp-request-structure/">Структура SNMP запроса get-request</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:</p>
-<img src="/2021/08/12/snmp-request-structure/get-request.jpg" class="" title="Структура SNMP запроса get-request (Wireshark)">
-
-<p>Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего массива пришедших байтов (0x2C<sub>16</sub> = 44<sub>10</sub>). Пятый байт 0x00 показывает номер версии version-1, за которым следует указатель community и байт его длины 0x06 (6 байт). Значение community начинается в нашем случае с 8-го байта и идёт до 13 байта включительно (0x70 0x75 0x62 0x6C 0x69 0x63). Дальше следуют байты данных самого get-request: открывающий байт 0xA0, длина последующих байтов 0x1F (31 байт), открывающий байт идентификатора запроса 0x02 и длина request-id 0x04. Значение request-id начинается с 18 байта и идёт в нашем случае до 21 байта (0x0B 0x5E 0xA0 0x42), что составляет значение 190750786. Аналогичная величина request-id должна присутствовать в SNMP ответе get-response. Далее 24-м байтом идёт error-status, 27-м байтом идёт error-index, а 33-м байтом идёт длина переданного OID 0x0B (11 байтов): 0x2B 0x06 0x01 0x02 0x01 0x2B 0x05 0x01 0x01 0x11 0x01, что составляет значение 1.3.6.1.2.1.43.5.1.1.17.1. Именно на это значение OID отвечает устройство в ответ. Алгоритм того, как одиннадцать вышеперечисленных байтов превращаются в вышеуказанный OID можно найти в статье <a href="https://ostart.github.io/2021/08/12/simple-snmp-server/">Простой SNMP сервер на C#</a>. SNMP пакет завершается байтами 0x05 0x00.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckx69ma2s0015fovse9gjby6l" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li></ul>
 
     </footer>
   </div>
@@ -629,6 +646,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/14/let-in-linq-queries/">Использование let для упрощения LINQ запросов</a>
           </li>
         
@@ -642,10 +663,6 @@
         
           <li>
             <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/07/rpm-package/">RPM-пакет</a>
           </li>
         
       </ul>

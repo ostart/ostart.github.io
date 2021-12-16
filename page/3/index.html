@@ -77,6 +77,50 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-snmp-request-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/08/12/snmp-request-structure/" class="article-date">
+  <time class="dt-published" datetime="2021-08-12T10:07:11.000Z" itemprop="datePublished">12-08-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/08/12/snmp-request-structure/">Структура SNMP запроса get-request</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Давайте взглянем на структуру SNMP запроса get-request с помощью Wireshark:</p>
+<img src="/2021/08/12/snmp-request-structure/get-request.jpg" class="" title="Структура SNMP запроса get-request (Wireshark)">
+
+<p>Пакет начинается с байта 0x30 и содержит в нашем примере всего 46 байтов. Второй байт 0x2C показывает длину последующего массива пришедших байтов (0x2C<sub>16</sub> = 44<sub>10</sub>). Пятый байт 0x00 показывает номер версии version-1, за которым следует указатель community и байт его длины 0x06 (6 байт). Значение community начинается в нашем случае с 8-го байта и идёт до 13 байта включительно (0x70 0x75 0x62 0x6C 0x69 0x63). Дальше следуют байты данных самого get-request: открывающий байт 0xA0, длина последующих байтов 0x1F (31 байт), открывающий байт идентификатора запроса 0x02 и длина request-id 0x04. Значение request-id начинается с 18 байта и идёт в нашем случае до 21 байта (0x0B 0x5E 0xA0 0x42), что составляет значение 190750786. Аналогичная величина request-id должна присутствовать в SNMP ответе get-response. Далее 24-м байтом идёт error-status, 27-м байтом идёт error-index, а 33-м байтом идёт длина переданного OID 0x0B (11 байтов): 0x2B 0x06 0x01 0x02 0x01 0x2B 0x05 0x01 0x01 0x11 0x01, что составляет значение 1.3.6.1.2.1.43.5.1.1.17.1. Именно на это значение OID отвечает устройство в ответ. Алгоритм того, как одиннадцать вышеперечисленных байтов превращаются в вышеуказанный OID можно найти в статье <a href="https://ostart.github.io/2021/08/12/simple-snmp-server/">Простой SNMP сервер на C#</a>. SNMP пакет завершается байтами 0x05 0x00.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="ckx8w6bui0015r0vsg6ol2l2p" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-pragmatic-programmer" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/08/03/pragmatic-programmer/" class="article-date">
@@ -209,7 +253,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckx69ma2n000wfovs0q16ernr" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="ckx8w6buh0010r0vsb7dbenav" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
       
       
       
@@ -267,7 +311,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckx69ma2y001efovsew7eb1fr" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="ckx8w6bvh005jr0vsckyx07ea" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Поделиться</a>
       
       
       
@@ -345,7 +389,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckx69ma2i000pfovs3dcv6tr7" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="ckx8w6bud000rr0vsac8tec6u" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Поделиться</a>
       
       
       
@@ -413,7 +457,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckx69ma2j000sfovsa2hdgxao" data-title="О NSIS" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="ckx8w6buc000or0vsghmef0q3" data-title="О NSIS" class="article-share-link">Поделиться</a>
       
       
       
@@ -465,7 +509,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckx69ma2v0019fovse6th3in2" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckx8w6bum001ar0vs0obp335o" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
       
       
       
@@ -532,7 +576,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckx69ma2w001afovsdf2hb4wb" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckx8w6bul0019r0vs41v94nak" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
       
       
       
@@ -613,7 +657,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckx69ma2b000gfovs2szg0l5v" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckx8w6bu6000fr0vsbrb1dqjq" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
       
       
       
@@ -654,7 +698,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckx69ma1n0001fovsfhpw2myw" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckx8w6btv0003r0vscw4p1au1" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
       
       
       
@@ -705,7 +749,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckx69ma29000dfovsc3s6bxeg" data-title="Hello World" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckx8w6bu7000hr0vsh6q665ow" data-title="Hello World" class="article-share-link">Поделиться</a>
       
       
       
@@ -767,6 +811,10 @@
       <ul>
         
           <li>
+            <a href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/14/let-in-linq-queries/">Использование let для упрощения LINQ запросов</a>
           </li>
         
@@ -780,10 +828,6 @@
         
           <li>
             <a href="/2021/12/07/rpm-spec/">SPEC-файл RPM-пакета</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/07/rpm-package/">RPM-пакет</a>
           </li>
         
       </ul>
