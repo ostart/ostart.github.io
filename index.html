@@ -77,6 +77,149 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-processing-tasks-as-they-complete" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/10/processing-tasks-as-they-complete/" class="article-date">
+  <time class="dt-published" datetime="2022-02-10T11:17:30.000Z" itemprop="datePublished">10-02-2022</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/02/10/processing-tasks-as-they-complete/">Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Данный пост является переводом статьи <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/">Stephen Toub “Processing tasks as they complete”</a>.</p>
+<p>Недавно несколько человек спросили меня, как обрабатывать результаты выполнения задач по мере их завершения.</p>
+<p>Допустим у разработчика есть несколько задач, представляющих асинхронные операции которые он инициировал, и он хочет обработать результаты выполнения этих задач, например:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="keyword">var</span> t <span class="keyword">in</span> tasks) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123; Process(<span class="keyword">await</span> t); &#125;</span><br><span class="line">    catch(OperationCanceledException) &#123;&#125;</span><br><span class="line">    catch(Exception exc) &#123; Handle(exc); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Такой подход подходит для многих ситуаций. Однако он накладывает дополнительное ограничение при обработке, которое на самом деле не подразумевалось в исходной постановке задачи: этот код в конечном итоге обрабатывает задачи в той последовательности, в которой они были вызваны, а не в порядке их завершения, что означает, что некоторые задачи, которые уже были завершены, могут быть недоступны для обработки, поскольку предыдущая задача в последовательности может быть еще не завершена.</p>
+<p>Есть много способов реализовать подобное решение. Один из подходов включает простое использование метода ContinueWith у Task, например:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="keyword">var</span> t <span class="keyword">in</span> tasks)</span><br><span class="line">    t.ContinueWith(completed =&gt; &#123;</span><br><span class="line">        <span class="keyword">switch</span>(completed.Status) &#123;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.RanToCompletion: Process(completed.Result); <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.Faulted: Handle(completed.Exception.InnerException); <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, TaskScheduler.Default);</span><br></pre></td></tr></table></figure>
+
+<p>Это решение устраняет дополнительное ограничение, заключавшееся в том, что исходное решение заставляло обработку всех продолжений выполняться последовательно (и в исходном SynchronizationContext, если он был), тогда как данное решение позволяет выполнять обработку параллельно и в ThreadPool. Если вы хотите использовать данный подход, но также заставить задачи выполняться последовательно, можно сделать это, подставив сериализующий планировщик для метода ContinueWith (то есть планировщик, который заставит продолжения выполняться исключительно с оглядкой друг на друга). Например, вы можете использовать ConcurrentExclusiveSchedulerPair:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">var</span> scheduler = <span class="keyword">new</span> ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="keyword">var</span> t <span class="keyword">in</span> tasks)</span><br><span class="line">    t.ContinueWith(completed =&gt; &#123;</span><br><span class="line">        <span class="keyword">switch</span>(completed.Status) &#123;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.RanToCompletion: Process(completed.Result); <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.Faulted: Handle(completed.Exception.InnerException); <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, scheduler);</span><br></pre></td></tr></table></figure>
+
+<p>или если вы были в потоке пользовательского интерфейса вашего приложения вы могли бы предоставить планировщик, который представляет данный  поток пользовательского интерфейса, например:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> scheduler = TaskScheduler.FromCurrentSynchronizationContext();</span><br></pre></td></tr></table></figure>
+
+<p>Подход, основанный на методе ContinueWith, заставляет вас использовать модель, основанную на обратных вызовах (callbacks), для выполнения вашей обработки результатов. Если вы хотите, чтобы обработка выполнялась последовательно по мере завершения задач, но с использованием async/await, а не с использованием ContinueWith, это также возможно.</p>
+<p>Есть несколько способов добиться этого. Относительно простой способ — использовать Task.WhenAny. WhenAny принимает набор задач и асинхронно предоставляет первую из них, которая завершится. Таким образом, вы можете многократно вызывать WhenAny, каждый раз удаляя ранее выполненную задачу, чтобы асинхронно ожидать завершения следующей:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">while</span>(tasks.Count &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> t = <span class="keyword">await</span> Task.WhenAny(tasks);</span><br><span class="line">    tasks.Remove(t);</span><br><span class="line">    <span class="keyword">try</span> &#123; Process(<span class="keyword">await</span> t); &#125;</span><br><span class="line">    catch(OperationCanceledException) &#123;&#125;</span><br><span class="line">    catch(Exception exc) &#123; Handle(exc); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Функционально это норм, и пока количество задач невелико, производительность тоже должна быть в порядке. Однако, если количество задач становится велико, то это может привести к непренебрежимому снижению производительности. Здесь мы фактически создали алгоритм O(N^2): для каждой задачи мы ищем в списке задачу для ее удаления, что является операцией O(N), и мы регистрируем продолжение для каждой задачи, что тоже является операцией O(N). Например, если бы у нас было 10 000 задач, в течение всей этой операции мы бы в конечном итоге зарегистрировали и отменили регистрацию более 50 миллионов продолжений как части вызовов WhenAny. Правда не всё так плохо как кажется, поскольку WhenAny разумно управляет своими ресурсами, например: не регистрируя продолжения уже завершенных задач; останавливаясь, как только находит завершенную задачу; повторно используя один и тот же объект продолжения для всех задач и т. д. Тем не менее, здесь есть работа, которую мы можем избежать, если профилирование сочтёт этот код проблематичным.</p>
+<p>Альтернативный подход заключается в создании нового метода «комбинатора», специально предназначенного для этой цели. При работе с коллекцией  экземпляров задач типа <code>Task&lt;T&gt;</code> метод WhenAny возвращает <code>Task&lt;Task&lt;T&gt;&gt;</code>; это задача, которая завершится, когда завершится первая из поставленных на выполнение задач, и результатом задачи <code>Task&lt;Task&lt;T&gt;&gt;</code> будет первая завершившаяся задача коллекции. В нашем случае нам нужна не только первая задача, но и все задачи, упорядоченные по мере их завершения. Мы можем представить это с помощью <code>Task&lt;Task&lt;T&gt;&gt;[]</code>. Воспринимайте это как массив корзин, куда мы будем помещать входящие задачи по мере их завершения, по одной задаче на корзину. Таким образом, если вы хотите, чтобы первая задача была завершена, вы можете дождаться (await) первой корзины этого массива, а если вы хотите, чтобы шестая задача была завершена, вы можете дождаться (await) шестой корзины этого массива.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="title">Task</span>&lt;<span class="title">Task</span>&lt;<span class="title">T</span>&gt;&gt; [] <span class="title">Interleaved</span>&lt;<span class="title">T</span>&gt;(<span class="params">IEnumerable&lt;Task&lt;T&gt;&gt; tasks</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> inputTasks = tasks.ToList();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> buckets = <span class="keyword">new</span> TaskCompletionSource&lt;Task&lt;T&gt;&gt;[inputTasks.Count];</span><br><span class="line">    <span class="keyword">var</span> results = <span class="keyword">new</span> Task&lt;Task&lt;T&gt;&gt;[buckets.Length];</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; buckets.Length; i++) </span><br><span class="line">    &#123;</span><br><span class="line">        buckets[i] = <span class="keyword">new</span> TaskCompletionSource&lt;Task&lt;T&gt;&gt;();</span><br><span class="line">        results[i] = buckets[i].Task;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">int</span> nextTaskIndex = <span class="number">-1</span>;</span><br><span class="line">    Action&lt;Task&lt;T&gt;&gt; continuation = completed =&gt;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">var</span> bucket = buckets[Interlocked.Increment(<span class="keyword">ref</span> nextTaskIndex)];</span><br><span class="line">        bucket.TrySetResult(completed);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">foreach</span> (<span class="keyword">var</span> inputTask <span class="keyword">in</span> inputTasks)</span><br><span class="line">        inputTask.ContinueWith(continuation, </span><br><span class="line">                               CancellationToken.None,</span><br><span class="line">                               TaskContinuationOptions.ExecuteSynchronously,</span><br><span class="line">                               TaskScheduler.Default);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> results;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Итак, что здесь происходит? Сначала мы преобразуем наше перечисление задач в список <code>List&lt;Task&lt;T&gt;&gt;</code>; это делается для того, чтобы любые задачи, которые могут быть созданы ленивым отложенным способом путем перечисления перечисляемого, были материализованы один раз. Затем мы создаем экземпляры <code>TaskCompletionSource&lt;Task&lt;T&gt;&gt;</code> для представления корзин, по одной корзине на каждую задачу, которая в конечном итоге будет завершена. Затем мы цепляем продолжение к каждой входящей задаче: это продолжение получит следующую доступную корзину и сохранит в ней только что выполненную задачу. С помощью такого комбинатора можно переписать исходный код следующим образом:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="function"><span class="keyword">var</span> bucket <span class="keyword">in</span> <span class="title">Interleaved</span>(<span class="params">tasks</span>))</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> t = <span class="keyword">await</span> bucket;</span><br><span class="line">    <span class="keyword">try</span> &#123; Process(<span class="keyword">await</span> t); &#125;</span><br><span class="line">    catch(OperationCanceledException) &#123;&#125;</span><br><span class="line">    catch(Exception exc) &#123; Handle(exc); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Чтобы закрыть данное обсуждение, давайте посмотрим на то, что это даёт на практике. Рассмотрим:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tasks = <span class="keyword">new</span>[] &#123; </span><br><span class="line">    Task.Delay(<span class="number">3000</span>).ContinueWith(_ =&gt; <span class="number">3</span>),</span><br><span class="line">    Task.Delay(<span class="number">1000</span>).ContinueWith(_ =&gt; <span class="number">1</span>), </span><br><span class="line">    Task.Delay(<span class="number">2000</span>).ContinueWith(_ =&gt; <span class="number">2</span>),</span><br><span class="line">    Task.Delay(<span class="number">5000</span>).ContinueWith(_ =&gt; <span class="number">5</span>),</span><br><span class="line">    Task.Delay(<span class="number">4000</span>).ContinueWith(_ =&gt; <span class="number">4</span>),</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">foreach</span> (<span class="function"><span class="keyword">var</span> bucket <span class="keyword">in</span> <span class="title">Interleaved</span>(<span class="params">tasks</span>))</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> t = <span class="keyword">await</span> bucket;</span><br><span class="line">    <span class="built_in">int</span> result = <span class="keyword">await</span> t;</span><br><span class="line">    Console.WriteLine(“&#123;<span class="number">0</span>&#125;: &#123;<span class="number">1</span>&#125;”, DateTime.Now, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>У нас есть массив задач Task<int>, каждая из которых завершится через N секунд и вернет целое число N (например, первая задача в массиве завершится через 3 секунды и вернет число 3). Затем мы перебираем эти задачи, используя наш самодельный метод Interleaved, распечатывая результаты по мере их получения. Когда я запускаю этот код, я вижу следующий вывод:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">48</span> AM: <span class="number">1</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">49</span> AM: <span class="number">2</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">50</span> AM: <span class="number">3</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">51</span> AM: <span class="number">4</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">52</span> AM: <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>и это именно то поведение, которое мы хотели. Обратите внимание на время вывода каждого элемента. Все задачи были запущены одновременно, поэтому все их таймеры работают одновременно. По мере того как каждая задача завершается, наш цикл может обработать её, и в результате мы получаем по одной строке вывода каждую секунду.</p>
+<p>Для контраста рассмотрим тот же пример, но без использования Interleaved:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tasks = <span class="keyword">new</span>[] &#123; </span><br><span class="line">    Task.Delay(<span class="number">3000</span>).ContinueWith(_ =&gt; <span class="number">3</span>),</span><br><span class="line">    Task.Delay(<span class="number">1000</span>).ContinueWith(_ =&gt; <span class="number">1</span>), </span><br><span class="line">    Task.Delay(<span class="number">2000</span>).ContinueWith(_ =&gt; <span class="number">2</span>),</span><br><span class="line">    Task.Delay(<span class="number">5000</span>).ContinueWith(_ =&gt; <span class="number">5</span>),</span><br><span class="line">    Task.Delay(<span class="number">4000</span>).ContinueWith(_ =&gt; <span class="number">4</span>),</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">foreach</span> (<span class="keyword">var</span> t <span class="keyword">in</span> tasks) &#123;</span><br><span class="line">    <span class="built_in">int</span> result = <span class="keyword">await</span> t;</span><br><span class="line">    Console.WriteLine(“&#123;<span class="number">0</span>&#125;: &#123;<span class="number">1</span>&#125;”, DateTime.Now, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>При запуске этого варианта видим:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">08</span> AM: <span class="number">3</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">08</span> AM: <span class="number">1</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">08</span> AM: <span class="number">2</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">10</span> AM: <span class="number">5</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">10</span> AM: <span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<p>А теперь взгляните на время. Поскольку идёт обработка задач по порядку, мы не можем распечатать результаты для задачи 1 или задачи 2 до тех пор, пока задача 3 не будет завершена (поскольку она была перед ними в массиве). Точно так же мы не можем распечатать результат для задачи 4, пока задача 5 не будет завершена.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="ckzh1v475000yggvs6v3k2ute" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-task-when-any" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/10/task-when-any/" class="article-date">
+  <time class="dt-published" datetime="2022-02-10T09:42:02.000Z" itemprop="datePublished">10-02-2022</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/02/10/task-when-any/">Параллельная обработка задач по мере их завершения с помощью Task.WhenAny</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Читаю я как-то главу <strong>6.8 “Handling Parallel Tasks as They Complete”</strong> книги <strong>Joe Mayo “C# Cookbook”</strong> и встречаю такой абзац:</p>
+<p><em>You thought calling</em> <code>Task.WhenAny</code> <em>would be an efficient use resources for processing results as they complete, but cost and performance are terrible.</em></p>
+<p>Минуточку, уважаемый Джо! А тут я попрошу вас поподробнее. У меня на проде используется этот <code>Task.WhenAny</code>… Но в подробности Джо не пускается, рекомендуя вместо <del><code>Task.WhenAny</code></del> использовать <code>Task.WhenAll</code>, утверждая, что у <code>Task.WhenAll</code> сложность О(1), т.к. вместо N последовательных операций выполняется как-бы одна (все N операций выполняются параллельно).</p>
+<p>Далее Джо утверждает, что в паттерне:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(tasks.Any())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> currentFinishedTask = <span class="keyword">await</span> Task.WhenAny(tasks);</span><br><span class="line">    tasks.Remove(currentFinishedTask);</span><br><span class="line">    <span class="comment">// Handle currentFinishedTask result</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>всё происходит не так как ты ожидаешь:</p>
+<p><em>The reality is that each subsequent loop starts a brand-new set of tasks. This is how async works - you can</em> <code>await</code> <em>a task multiple times, but each</em> <code>await</code> <em>starts a new task. That means the code continiously starts new instances of remaining tasks on every loop. This looping pattern, with</em> <code>Task.WhenAny</code><em>, doesn’t result in the O(1) performance you might have expected, like with</em> <code>Task.WhenAll</code><em>, but rather O(N^2).</em></p>
+<p>А это уже плохой сигнал, как говорит <a target="_blank" rel="noopener" href="https://www.youtube.com/channel/UC3VDbjQ1hnY4zSRHgAfAK-A">Егор Иванов</a> :( Далее Джо пугает, что это скажется не только на плохой производительности приложения, но и может породить избыточную сетевую активность и нагрузить конечный сервер бесполезной работой. А представляете как эти избыточные сетевые запросы отразятся и сколько будут стоить в облачном сервисе?!? Короче Джо признаёт <code>Task.WhenAny</code> антипаттерном в том виде, что он приведён выше, если он только не используется для малого числа задач. Джо советует использовать <code>Task.WhenAny</code> только для случая, когда нас интересует только задача победитель, а на остальные можно забить и не дожидаться/продолжать их обработку. Тогда <code>Task.WhenAny</code> тоже будет иметь производительность со сложностью O(1).</p>
+<p>Ну и завершает главу Джо таким абзацем:<br><em>Task.WhenAny runs those tasks in parallel and the first task to complete comes back. The code processes that task and returns. The side effect in this solution is that tasks other the first that returned continue running. However, you don’t have access to them because only one task is returned. For this scenario, you don’t care about those tasks but should stop them to avoid using more resources than necessary. You can learn how to do that in the next section on cancelling tasks.</em></p>
+<p>Вот такие пироги! Побочный эффект, понимаешь! Сейчас проверим, что за побочный эффект. Для этого наваяем такой класс:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ExperimentalTask</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> TimeInSeconds &#123;<span class="keyword">get</span>; <span class="keyword">private</span> <span class="keyword">set</span>;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ExperimentalTask</span>(<span class="params"><span class="built_in">int</span> timeInSeconds</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        TimeInSeconds = timeInSeconds;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">async</span> Task <span class="title">WaitFor</span>(<span class="params"></span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        Console.WriteLine(<span class="string">$&quot;Enter in Time=<span class="subst">&#123;TimeInSeconds&#125;</span> sec.&quot;</span>);</span><br><span class="line">        <span class="keyword">await</span> Task.Delay(TimeInSeconds * <span class="number">1000</span>);</span><br><span class="line">        Console.WriteLine(<span class="string">$&quot;Finished for Time=<span class="subst">&#123;TimeInSeconds&#125;</span> sec.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>и задействуем его таким кодом:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Console.WriteLine(<span class="string">&quot;Experiment is starting&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> tasks = <span class="keyword">new</span> List&lt;Task&gt;();</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i = <span class="number">1</span>; i &lt;= <span class="number">5</span>; i += <span class="number">1</span>)</span><br><span class="line">&#123;</span><br><span class="line">    tasks.Add(<span class="keyword">new</span> ExperimentalTask(i).WaitFor());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> stopwatch = System.Diagnostics.Stopwatch.StartNew();</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span>(tasks.Any())</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(<span class="string">$&quot;tasks.Count=<span class="subst">&#123;tasks.Count&#125;</span>&quot;</span>);</span><br><span class="line">    <span class="keyword">var</span> currentFinishedTask = <span class="keyword">await</span> Task.WhenAny(tasks);</span><br><span class="line">    tasks.Remove(currentFinishedTask);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Console.WriteLine(<span class="string">&quot;Experiment finished&quot;</span>);</span><br><span class="line">stopwatch.Stop();</span><br><span class="line">Console.WriteLine(<span class="string">$&quot;Elapsed time: <span class="subst">&#123;stopwatch.Elapsed&#125;</span>\n&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>Запустим приложение и увидим такие результаты:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Experiment is starting</span><br><span class="line">Enter <span class="keyword">in</span> Time=1 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=2 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=3 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=4 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=5 sec.</span><br><span class="line">tasks.Count=5</span><br><span class="line">Finished <span class="keyword">for</span> Time=1 sec.</span><br><span class="line">tasks.Count=4</span><br><span class="line">Finished <span class="keyword">for</span> Time=2 sec.</span><br><span class="line">tasks.Count=3</span><br><span class="line">Finished <span class="keyword">for</span> Time=3 sec.</span><br><span class="line">tasks.Count=2</span><br><span class="line">Finished <span class="keyword">for</span> Time=4 sec.</span><br><span class="line">tasks.Count=1</span><br><span class="line">Finished <span class="keyword">for</span> Time=5 sec.</span><br><span class="line">Experiment finished</span><br><span class="line">Elapsed time: 00:00:05.0092732</span><br></pre></td></tr></table></figure>
+
+<p>Так, а где побочный эффект? Где “the code continiously starts new instances of remaining tasks on every loop”? Про какую реальность утверждает Джо “The reality is that each subsequent loop starts a brand-new set of tasks”? При исследовании Task.WhenAny паттерна на сайте Майкрософт <a target="_blank" rel="noopener" href="https://docs.microsoft.com/ru-ru/dotnet/csharp/programming-guide/concepts/async/start-multiple-async-tasks-and-process-them-as-they-complete">Обработка асинхронных задач по мере завершения (C#)</a> находим примечание:</p>
+<p><strong>Внимание!</strong></p>
+<p><strong>Можно использовать</strong> <code>WhenAny</code> <strong>в цикле, как описано в примере, для решения проблем, которые включают небольшое число задач. Однако когда требуется обработка большого числа задач, другие методы будут более эффективны. Дополнительные сведения и примеры см. в разделе</strong> <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/">Обработка задач по мере их завершения</a>.</p>
+<p>Предлагаю углубиться в эту тему через мой <a href="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/">перевод этой статьи</a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="ckzh1v47e001fggvs1dud3roj" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-sync-from-async" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/16/sync-from-async/" class="article-date">
@@ -111,7 +254,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="ckx8yl21x001aj0vs44nk67wa" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="ckzh1v47f001iggvsf05d8fny" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
       
       
       
@@ -174,7 +317,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="ckx8yl22x005jj0vsfa2f8bcl" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="ckzh1v48c005wggvsfwxlh4k9" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
       
       
       
@@ -224,7 +367,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckx8yl21l000nj0vs5ls4eye1" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckzh1v471000oggvsc9wl94uc" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
       
       
       
@@ -276,7 +419,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckx8yl219000aj0vsfw7acvol" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckzh1v46d0009ggvs2fxf3x3e" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -341,7 +484,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckx8yl20x0003j0vsdkl0dlpa" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckzh1v4600000ggvs9a9waw3e" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -401,7 +544,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckx8yl21r000yj0vscdym5w2f" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckzh1v4780015ggvs95uh5i3w" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -481,7 +624,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckx8yl21s0010j0vsbthbdxoo" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckzh1v4760010ggvs8z4agm3h" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -526,143 +669,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckx8yl21j000lj0vs6qx1ae4r" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckzh1v46z000kggvs1th7c5s3" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-progressive-delay-pattern" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/11/18/progressive-delay-pattern/" class="article-date">
-  <time class="dt-published" datetime="2021-11-18T06:04:13.000Z" itemprop="datePublished">18-11-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/11/18/progressive-delay-pattern/">Шаблон увеличивающегося интервала повторения запроса</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Когда в приложении прогнозируется присутствие проблем при запросах по сети и не требуется сдаваться в получении ответа при появлении первой же проблемы, я использую шаблон увеличивающегося интервала повторения запроса. Суть шаблона такова: в случае отсутствия ответа (от МФУ например) в отведённый таймаут приложение ожидает определённый интервал времени и затем пытается отправить запрос снова. Если и во второй раз нет ответа, то ожидаем в два раза дольший интервал времени и т.д. (в три, четыре… Вид прогрессии можно выбрать самостоятельно). Получается, что запросы идут всё реже и реже не перегружая устройство (или сайт) в случае сетевых проблем на его стороне. В случае отсутствия ответов заданное число раз, можно полностью прекратить отправку запросов.</p>
-<p>Ниже приводится код условного метода <em>Method</em>. База интервала повторения запроса составляет одну секунду и задана арифметическая прогрессия увеличения интервала. Можно задать геометрическую прогрессию, умножая текущий интервал повторения на 2 каждый раз или даже степенную, возводя базу в степень текущего числа повторений (<code>var currentDelay = Math.Pow(DelayInMilliseconds, tryCounter);</code>). Ожидание реализовано синхронно, а асинхронный вариант ожидания (требующий изменения сигнатуры метода на <em>Task<int> Method()</em>) показан в комментарии.</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">int</span> <span class="title">Method</span>(<span class="params"></span>) <span class="comment">// public static Task&lt;int&gt; Method()</span></span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">int</span> DelayInMilliseconds = <span class="number">1000</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">int</span> RetryCount = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">bool</span> success = <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> tryCounter = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> response;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">do</span></span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">try</span></span><br><span class="line">          &#123;</span><br><span class="line">              response = <span class="comment">// Http запрос к сайту, устройству или т.п.</span></span><br><span class="line">              success = <span class="literal">true</span>;</span><br><span class="line">          &#125; </span><br><span class="line">          catch(HttpRequestException ex) <span class="keyword">when</span> (ex.StatusCode == HttpStatusCode.RequestTimeout)</span><br><span class="line">          &#123;</span><br><span class="line">              tryCounter += <span class="number">1</span>;</span><br><span class="line">              <span class="keyword">var</span> currentDelay = DelayInMilliseconds * tryCounter;</span><br><span class="line">              Thread.Sleep(currentDelay); <span class="comment">// await Task.Delay(currentDelay);</span></span><br><span class="line">          &#125;</span><br><span class="line">      &#125; <span class="keyword">while</span>(tryCounter &lt; RetryCount);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">finally</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> (success)</span><br><span class="line">        <span class="keyword">return</span> response;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> HttpRequestException(<span class="string">&quot;Request failed&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Обратите внимание, на двойное обёртывание блоками try-catch-finally самого сетевого запроса. Именно во внешнем блоке finally формируется возвращаемый методом ответ <code>return response;</code>. Иначе он выкидывает наружу исключение HttpRequestException.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="ckx8yl21p000wj0vsc7ci6pc9" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-cursor-paging" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/10/21/cursor-paging/" class="article-date">
-  <time class="dt-published" datetime="2021-10-21T07:59:07.000Z" itemprop="datePublished">21-10-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/10/21/cursor-paging/">Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><strong>Перевод статьи Халида Абухакмеха (Khalid Abuhakmeh) <a target="_blank" rel="noopener" href="https://khalidabuhakmeh.com/cursor-paging-with-entity-framework-core-and-aspnet-core">Cursor Paging With Entity Framework Core and ASP.NET Core</a></strong>.</p>
-<p>При создании API-интерфейсов, которые возвращают значительный объем данных, нам необходимо принимать проектные решения, основываясь на нижележащей базе данных. Например, разработчик может реализовать специальный endpoint в API, который позволит клиентам получать наборы значений из заданного диапазона. Как разработчики API, мы можем выбирать между постраничной пагинацией и пагинацией с помощью курсора.</p>
-<p>В этом посте показано, как реализовать оба подхода и почему разбиение по страницам с помощью курсора - это более предпочтительный по производительности вариант.</p>
-<h2 id="Что-такое-пагинация"><a href="#Что-такое-пагинация" class="headerlink" title="Что такое пагинация?"></a>Что такое пагинация?</h2><p>Для разработчиков, только начинающих создавать управляемые данными API, понятие пагинации, как разбиения на страницы, становится важной для понимания концепцией. Набор значений может быть как ограниченным, так и безграничным.</p>
-<p>Ограниченный набор значений имеет предел. Например, семья будет иметь верхнюю границу количества детей. В большинстве случаев в семье бывает 2-4 ребенка. Таким образом, мы, скорее всего, вернем всех детей в едином ответе при построении API на базе семьи.</p>
-<p>Безграничный набор значений не имеет предела. Обычно это коллекции, связанные с вводом пользователя, данными временных рядов или другими механизмами. Например, все платформы социальных сетей работают с безграничным ресурсом. Например, в Твиттере твиты отправляют миллионы людей по всей планете одновременно. В этих случаях невозможно вернуть полный набор данных любому клиенту, но вместо этого API создает фрагмент на основе запрашиваемового критерия.</p>
-<p>Что касается API, то пагинация - это попытка разработчика предоставить клиенту частичный набор результатов из огромного источника данных, с которым невозможно взаимодействовать как то иначе.</p>
-<h2 id="Выбор-правильного-подхода-к-пагинации"><a href="#Выбор-правильного-подхода-к-пагинации" class="headerlink" title="Выбор правильного подхода к пагинации"></a>Выбор правильного подхода к пагинации</h2><p>Существует два подхода к разбиению коллекций на страницы:</p>
-<ol>
-<li>Пагинация по номеру и размеру страницы</li>
-<li>Пагинация с использованием курсора и размера страницы</li>
-</ol>
-<p>Термин <strong>курсор</strong> переопределён. Его не следует путать с понятием курсора из реляционных баз данных. Хотя идея имеет сходство с реализацией в базе данных, они не связаны между собой.</p>
-<p><strong>Курсор</strong> - это идентификатор, который извлекает следующий элемент в наших последовательных запросах пагинации. Таким образом, пользователи могут размышлять об этом отвечая на вопрос: «Что последует за этим идентификатором курсора?»</p>
-<p>Давайте рассмотрим на два подхода в формате запроса:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">### Пагинация по номеру и размеру страницы</span><br><span class="line">GET https://localhost:5001/pictures/paging?page=100000&amp;size=10</span><br><span class="line">Accept: application/json</span><br><span class="line"></span><br><span class="line">### Пагинация с использованием курсора и размера страницы</span><br><span class="line">GET https://localhost:5001/pictures/cursor?after=999990&amp;size=10</span><br><span class="line">Accept: application/json</span><br></pre></td></tr></table></figure>
-
-<p>Два HTTP-запроса выглядят очень похоже с точки зрения пользователя, но работают принципиально по-разному.</p>
-<p>Для запроса пагинации мы вычисляем диапазон в нашем хранилище данных и извлекаем эти элементы. Здесь мы разместим коллекцию изображений, чтобы получить результаты на определенной странице:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> query = db</span><br><span class="line">    .Pictures</span><br><span class="line">    .OrderBy(x =&gt; x.Id)</span><br><span class="line">    .Skip((page - <span class="number">1</span>) * size)</span><br><span class="line">    .Take(size);</span><br></pre></td></tr></table></figure>
-
-<p>Хотя данный подход работает, разработчики должны помнить о предостережениях, самым большим из которых является смещение диапазона по мере поступления новых данных. Другая проблема в данном подходе зависит от нижележащей базы данных. При разбиении на страницы с помощью диапазонов база данных должна сканировать всё множество результатов, чтобы вернуть клиенту страницу. Таким образом, когда мы перемещаемся всё ближе к концу коллекции, производительность начинает ухудшаться.</p>
-<p>А как работает пагинация с помощью курсора? В отличие от создания диапазона для получения множества результатов, мы используем предыдущий результат для получения следующего. Курсором может быть любое значение, гарантирующее следующий диапазон. Поля, такие как авто-инкрементируемые идентификаторы или отметки времени, идеально подходят для пагинации с помощью курсора. Пагинация с помощью  курсора не страдает от проблемы, связанной с тем, что входящие данные искажают наши результаты разбиения по страницам, т.к. наш порядок является детерминированным.</p>
-<p>Давайте рассмотрим, как реализовать пагинацию с помощью курсора в виде запроса LINQ:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> query = db</span><br><span class="line">    .Pictures</span><br><span class="line">    .OrderBy(x =&gt; x.Id)</span><br><span class="line">    <span class="comment">// будет задействован индекс</span></span><br><span class="line">    .Where(x =&gt; x.Id &gt; after)</span><br><span class="line">    .Take(size);</span><br></pre></td></tr></table></figure>
-
-<p>Пагинация достаточно дорогостоящая операция, какой бы подход мы не использовали. Вы когда-нибудь задумывались, почему Google перестает показывать страницы результатов поиска после максимум 25 страниц? Что ж, существует способ уменьшения этой стоимости и повышения производительности.</p>
-<h2 id="Сравнивая-производительность"><a href="#Сравнивая-производительность" class="headerlink" title="Сравнивая производительность"></a>Сравнивая производительность</h2><p>Один из наиболее заметных недостатков пагинации по номеру и размеру страницы по сравнению с пагинацией с помощью курсора - это влияние на производительность. Давайте сравним две реализации веб-приложения в ASP.NET Core.</p>
-<p><strong>Примечание: В этом примере используются минималистические ASP.NET Core API-интерфейсы.</strong></p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Linq;</span><br><span class="line"><span class="keyword">using</span> CursorPaging;</span><br><span class="line"><span class="keyword">using</span> Microsoft.AspNetCore.Builder;</span><br><span class="line"><span class="keyword">using</span> Microsoft.AspNetCore.Http;</span><br><span class="line"><span class="keyword">using</span> Microsoft.EntityFrameworkCore;</span><br><span class="line"><span class="keyword">using</span> Microsoft.Extensions.DependencyInjection;</span><br><span class="line"><span class="keyword">using</span> Microsoft.Extensions.Hosting;</span><br><span class="line"><span class="keyword">using</span> Microsoft.Extensions.Logging;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> builder = WebApplication.CreateBuilder(args);</span><br><span class="line">builder.Services.AddDbContext&lt;Database&gt;();</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app = builder.Build();</span><br><span class="line"><span class="keyword">await</span> <span class="keyword">using</span> (<span class="keyword">var</span> scope = app.Services.CreateAsyncScope())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> db = scope.ServiceProvider.GetService&lt;Database&gt;();</span><br><span class="line">    <span class="keyword">var</span> logger = scope.ServiceProvider.GetService&lt;ILogger&lt;WebApplication&gt;&gt;();</span><br><span class="line">    <span class="keyword">var</span> result = <span class="keyword">await</span> Database.SeedPictures(db);</span><br><span class="line">    logger.LogInformation(<span class="string">$&quot;Seed operation returned with code <span class="subst">&#123;result&#125;</span>&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (app.Environment.IsDevelopment())</span><br><span class="line">&#123;</span><br><span class="line">    app.UseDeveloperExceptionPage();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">app</span><br><span class="line">    .UseDefaultFiles()</span><br><span class="line">    .UseStaticFiles();</span><br><span class="line"></span><br><span class="line">app.MapGet(<span class="string">&quot;/pictures/paging&quot;</span>, <span class="keyword">async</span> http =&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> page = http.Request.Query.TryGetValue(<span class="string">&quot;page&quot;</span>, <span class="keyword">out</span> <span class="keyword">var</span> pages)</span><br><span class="line">        ? <span class="built_in">int</span>.Parse(pages.FirstOrDefault() ?? <span class="built_in">string</span>.Empty)</span><br><span class="line">        : <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> size = http.Request.Query.TryGetValue(<span class="string">&quot;size&quot;</span>, <span class="keyword">out</span> <span class="keyword">var</span> sizes)</span><br><span class="line">        ? <span class="built_in">int</span>.Parse(sizes.FirstOrDefault() ?? <span class="built_in">string</span>.Empty)</span><br><span class="line">        : <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">using</span> <span class="keyword">var</span> db = http.RequestServices.GetRequiredService&lt;Database&gt;();</span><br><span class="line">    <span class="keyword">var</span> total = <span class="keyword">await</span> db.Pictures.CountAsync();</span><br><span class="line">    <span class="keyword">var</span> query = db</span><br><span class="line">        .Pictures</span><br><span class="line">        .OrderBy(x =&gt; x.Id)</span><br><span class="line">        .Skip((page - <span class="number">1</span>) * size)</span><br><span class="line">        .Take(size);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> logger = http.RequestServices.GetRequiredService&lt;ILogger&lt;Database&gt;&gt;();</span><br><span class="line">    logger.LogInformation(<span class="string">$&quot;Using Paging:\n<span class="subst">&#123;query.ToQueryString()&#125;</span>&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> results = <span class="keyword">await</span> query.ToListAsync();</span><br><span class="line">    <span class="keyword">await</span> http.Response.WriteAsJsonAsync(<span class="keyword">new</span> PagingResult</span><br><span class="line">    &#123;</span><br><span class="line">        Page = page,</span><br><span class="line">        Size = size,</span><br><span class="line">        Pictures = results.ToList(),</span><br><span class="line">        TotalCount = total,</span><br><span class="line">        Sql = query.ToQueryString()</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.MapGet(<span class="string">&quot;/pictures/cursor&quot;</span>, <span class="keyword">async</span> http =&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> after = http.Request.Query.TryGetValue(<span class="string">&quot;after&quot;</span>, <span class="keyword">out</span> <span class="keyword">var</span> afters)</span><br><span class="line">        ? <span class="built_in">int</span>.Parse(afters.FirstOrDefault() ?? <span class="built_in">string</span>.Empty)</span><br><span class="line">        : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> size = http.Request.Query.TryGetValue(<span class="string">&quot;size&quot;</span>, <span class="keyword">out</span> <span class="keyword">var</span> sizes)</span><br><span class="line">        ? <span class="built_in">int</span>.Parse(sizes.FirstOrDefault() ?? <span class="built_in">string</span>.Empty)</span><br><span class="line">        : <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">using</span> <span class="keyword">var</span> db = http.RequestServices.GetRequiredService&lt;Database&gt;();</span><br><span class="line">    <span class="keyword">var</span> logger = http.RequestServices.GetRequiredService&lt;ILogger&lt;Database&gt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> total = <span class="keyword">await</span> db.Pictures.CountAsync();</span><br><span class="line">    <span class="keyword">var</span> query = db</span><br><span class="line">        .Pictures</span><br><span class="line">        .OrderBy(x =&gt; x.Id)</span><br><span class="line">        <span class="comment">// will use the index</span></span><br><span class="line">        .Where(x =&gt; x.Id &gt; after)</span><br><span class="line">        .Take(size);</span><br><span class="line"></span><br><span class="line">    logger.LogInformation(<span class="string">$&quot;Using Cursor:\n<span class="subst">&#123;query.ToQueryString()&#125;</span>&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> results = <span class="keyword">await</span> query.ToListAsync();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> http.Response.WriteAsJsonAsync(<span class="keyword">new</span> CursorResult</span><br><span class="line">    &#123;</span><br><span class="line">        TotalCount = total,</span><br><span class="line">        Pictures = results,</span><br><span class="line">        Cursor = <span class="keyword">new</span> CursorResult.CursorItems</span><br><span class="line">        &#123;</span><br><span class="line">            After = results.Select(x =&gt; (<span class="built_in">int</span>?) x.Id).LastOrDefault(),</span><br><span class="line">            Before = results.Select(x =&gt; (<span class="built_in">int</span>?) x.Id).FirstOrDefault()</span><br><span class="line">        &#125;,</span><br><span class="line">        Sql = query.ToQueryString()</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.Run();</span><br></pre></td></tr></table></figure>
-
-<p>Разместим в нашей базе данных SQLite миллион строк и попытаемся постранично продвинуться по коллекции как можно глубже.</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">### Пагинация по номеру и размеру страницы</span><br><span class="line">GET https://localhost:5001/pictures/paging?page=100000&amp;size=10</span><br><span class="line">Accept: application/json</span><br><span class="line"></span><br><span class="line">### Пагинация с использованием курсора и размера страницы</span><br><span class="line">GET https://localhost:5001/pictures/cursor?after=999990&amp;size=10</span><br><span class="line">Accept: application/json</span><br></pre></td></tr></table></figure>
-
-<p>Каковы результаты этого эксперимента?</p>
-<p>Для нашего запроса страница/размер мы видим общее время ответа 225 мс.</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Content-Type: application/json; charset=utf-8</span><br><span class="line">Date: Wed, 23 Jun 2021 12:46:27 GMT</span><br><span class="line">Server: Kestrel</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">&gt; 2021-06-23T084627.200.json</span><br><span class="line"></span><br><span class="line">Response code: 200 (OK); Time: 225ms; Content length: 1328 bytes</span><br></pre></td></tr></table></figure>
-
-<p>Посмотрим, как курсор поведёт себя в подобной ситуации?</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Content-Type: application/json; charset=utf-8</span><br><span class="line">Date: Wed, 23 Jun 2021 12:46:27 GMT</span><br><span class="line">Server: Kestrel</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">&gt; 2021-06-23T084627-1.200.json</span><br><span class="line"></span><br><span class="line">Response code: 200 (OK); Time: 52ms; Content length: 1370 bytes</span><br></pre></td></tr></table></figure>
-
-<p>Ого! 52 мс против 225 мс! Это существенная разница при том же результате. Откуда же возникло это улучшение производительности? Давайте рассмотрим SQL запросы, сгенерированные EF Core, и сравним их.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Использование страницы/размера</span></span><br><span class="line">.param <span class="keyword">set</span> @__p_1 <span class="number">10</span></span><br><span class="line">.param <span class="keyword">set</span> @__p_0 <span class="number">999990</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> &quot;p&quot;.&quot;Id&quot;, &quot;p&quot;.&quot;Created&quot;, &quot;p&quot;.&quot;Url&quot;</span><br><span class="line"><span class="keyword">FROM</span> &quot;Pictures&quot; <span class="keyword">AS</span> &quot;p&quot;</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> &quot;p&quot;.&quot;Id&quot;</span><br><span class="line">LIMIT @__p_1 <span class="keyword">OFFSET</span> @__p_0</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Использование курсора</span></span><br><span class="line">.param <span class="keyword">set</span> @__after_0 <span class="number">999990</span></span><br><span class="line">.param <span class="keyword">set</span> @__p_1 <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> &quot;p&quot;.&quot;Id&quot;, &quot;p&quot;.&quot;Created&quot;, &quot;p&quot;.&quot;Url&quot;</span><br><span class="line"><span class="keyword">FROM</span> &quot;Pictures&quot; <span class="keyword">AS</span> &quot;p&quot;</span><br><span class="line"><span class="keyword">WHERE</span> &quot;p&quot;.&quot;Id&quot; <span class="operator">&gt;</span> @__after_0</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> &quot;p&quot;.&quot;Id&quot;</span><br><span class="line">LIMIT @__p_1</span><br></pre></td></tr></table></figure>
-
-<p>Видно, что первый запрос (страница/размер) использует ключевое слово OFFSET. Это ключевое слово говорит нашему провайдеру базы данных SQLite сканировать до смещения перед вызовом ключевого слова LIMIT. Как можно себе представить, сканирование таблицы из миллиона строк достаточно дорогостоящая операция.</p>
-<p>Для запроса с курсором видно, что используется столбец Id с условием WHERE. Использование индекса позволяет SQLite эффективно перемещаться по таблице, обеспечивая и более эффективное выполнение запроса.</p>
-<h2 id="Заключение"><a href="#Заключение" class="headerlink" title="Заключение"></a>Заключение</h2><p>Как мы видели в примерах выше, пагинация с помощью курсора становится более производительной по мере увеличения объ<br>ёма данных. Тем не менее, пагинация с использованием страницы и размера может имееть свое место в приложениях. Этот подход намного проще реализовать и для небольших наборов данных, которые меняются нечасто, это может быть отличным выбором. Как разработчики, мы обязаны выбрать лучший вариант для нашего сценария. Тем не менее, учитывая почти четырехкратное улучшение производительности запросов, трудно поспорить с пагинацией с помощью курсора.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="ckx8yl2160007j0vshlbo88z2" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/paging/" rel="tag">paging</a></li></ul>
 
     </footer>
   </div>
@@ -709,7 +720,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Архив</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">февраль 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
     </div>
   </div>
 
@@ -722,6 +733,14 @@
       <ul>
         
           <li>
+            <a href="/2022/02/10/processing-tasks-as-they-complete/">Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;</a>
+          </li>
+        
+          <li>
+            <a href="/2022/02/10/task-when-any/">Параллельная обработка задач по мере их завершения с помощью Task.WhenAny</a>
+          </li>
+        
+          <li>
             <a href="/2021/12/16/sync-from-async/">Вызов синхронного кода из асинхронного</a>
           </li>
         
@@ -731,14 +750,6 @@
         
           <li>
             <a href="/2021/12/14/let-in-linq-queries/">Использование let для упрощения LINQ запросов</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/14/distinct-objects/">Особенности Distinct на коллекциях объектов ссылочной природы</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/14/building-maintainable-software/">Разработка обслуживаемых программ на языке С#</a>
           </li>
         
       </ul>
@@ -754,7 +765,7 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       
-      &copy; 2021 Artem Ostashchenko<br>
+      &copy; 2022 Artem Ostashchenko<br>
       Создано с помощью <a href="https://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
