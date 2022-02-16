@@ -143,7 +143,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="ckzh1v475000yggvs6v3k2ute" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="ckzp1gv3c000s0cvseyp7dxdo" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
       
       
       
@@ -199,14 +199,15 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Experiment is starting</span><br><span class="line">Enter <span class="keyword">in</span> Time=1 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=2 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=3 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=4 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=5 sec.</span><br><span class="line">tasks.Count=5</span><br><span class="line">Finished <span class="keyword">for</span> Time=1 sec.</span><br><span class="line">tasks.Count=4</span><br><span class="line">Finished <span class="keyword">for</span> Time=2 sec.</span><br><span class="line">tasks.Count=3</span><br><span class="line">Finished <span class="keyword">for</span> Time=3 sec.</span><br><span class="line">tasks.Count=2</span><br><span class="line">Finished <span class="keyword">for</span> Time=4 sec.</span><br><span class="line">tasks.Count=1</span><br><span class="line">Finished <span class="keyword">for</span> Time=5 sec.</span><br><span class="line">Experiment finished</span><br><span class="line">Elapsed time: 00:00:05.0092732</span><br></pre></td></tr></table></figure>
 
 <p>Так, а где побочный эффект? Где “the code continiously starts new instances of remaining tasks on every loop”? Про какую реальность утверждает Джо “The reality is that each subsequent loop starts a brand-new set of tasks”? При исследовании Task.WhenAny паттерна на сайте Майкрософт <a target="_blank" rel="noopener" href="https://docs.microsoft.com/ru-ru/dotnet/csharp/programming-guide/concepts/async/start-multiple-async-tasks-and-process-them-as-they-complete">Обработка асинхронных задач по мере завершения (C#)</a> находим примечание:</p>
-<p><strong>Внимание!</strong></p>
-<p><strong>Можно использовать</strong> <code>WhenAny</code> <strong>в цикле, как описано в примере, для решения проблем, которые включают небольшое число задач. Однако когда требуется обработка большого числа задач, другие методы будут более эффективны. Дополнительные сведения и примеры см. в разделе</strong> <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/">Обработка задач по мере их завершения</a>.</p>
+<blockquote><p>Внимание!<br>Можно использовать <code>WhenAny</code> в цикле, как описано в примере, для решения проблем, которые включают небольшое число задач. Однако когда требуется обработка большого числа задач, другие методы будут более эффективны. Дополнительные сведения и примеры см. в разделе <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/">Обработка задач по мере их завершения</a>.</p>
+</blockquote>
+
 <p>Предлагаю углубиться в эту тему через мой <a href="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/">перевод этой статьи</a>.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="ckzh1v47e001fggvs1dud3roj" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="ckzp1gv3m001e0cvs421xfwjg" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
       
       
       
@@ -254,7 +255,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="ckzh1v47f001iggvsf05d8fny" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="ckzp1gv3n001f0cvsenac4484" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
       
       
       
@@ -317,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="ckzh1v48c005wggvsfwxlh4k9" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="ckzp1gv3p001k0cvsc16g1yoc" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
       
       
       
@@ -367,7 +368,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckzh1v471000oggvsc9wl94uc" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="ckzp1gv39000l0cvs3ddpaa6t" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
       
       
       
@@ -419,7 +420,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckzh1v46d0009ggvs2fxf3x3e" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckzp1gv30000a0cvs0lan83uj" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -484,7 +485,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckzh1v4600000ggvs9a9waw3e" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="ckzp1gv2q00010cvs3pkxcevv" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -544,7 +545,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckzh1v4780015ggvs95uh5i3w" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="ckzp1gv3g00110cvsbohn2hij" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -624,7 +625,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckzh1v4760010ggvs8z4agm3h" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="ckzp1gv3e000y0cvs07qp35eb" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -669,7 +670,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckzh1v46z000kggvs1th7c5s3" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="ckzp1gv38000j0cvs0i1rhimq" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       

@@ -14,7 +14,7 @@
 <meta property="og:description" content="Читаю я как-то главу 6.8 “Handling Parallel Tasks as They Complete” книги Joe Mayo “C# Cookbook” и встречаю такой абзац: You thought calling Task.WhenAny would be an efficient use resources for proces">
 <meta property="og:locale" content="ru_RU">
 <meta property="article:published_time" content="2022-02-10T09:42:02.000Z">
-<meta property="article:modified_time" content="2022-02-10T12:46:15.108Z">
+<meta property="article:modified_time" content="2022-02-16T04:08:36.057Z">
 <meta property="article:author" content="Artem Ostashchenko">
 <meta property="article:tag" content="C#">
 <meta name="twitter:card" content="summary">
@@ -122,14 +122,15 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Experiment is starting</span><br><span class="line">Enter <span class="keyword">in</span> Time=1 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=2 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=3 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=4 sec.</span><br><span class="line">Enter <span class="keyword">in</span> Time=5 sec.</span><br><span class="line">tasks.Count=5</span><br><span class="line">Finished <span class="keyword">for</span> Time=1 sec.</span><br><span class="line">tasks.Count=4</span><br><span class="line">Finished <span class="keyword">for</span> Time=2 sec.</span><br><span class="line">tasks.Count=3</span><br><span class="line">Finished <span class="keyword">for</span> Time=3 sec.</span><br><span class="line">tasks.Count=2</span><br><span class="line">Finished <span class="keyword">for</span> Time=4 sec.</span><br><span class="line">tasks.Count=1</span><br><span class="line">Finished <span class="keyword">for</span> Time=5 sec.</span><br><span class="line">Experiment finished</span><br><span class="line">Elapsed time: 00:00:05.0092732</span><br></pre></td></tr></table></figure>
 
 <p>Так, а где побочный эффект? Где “the code continiously starts new instances of remaining tasks on every loop”? Про какую реальность утверждает Джо “The reality is that each subsequent loop starts a brand-new set of tasks”? При исследовании Task.WhenAny паттерна на сайте Майкрософт <a target="_blank" rel="noopener" href="https://docs.microsoft.com/ru-ru/dotnet/csharp/programming-guide/concepts/async/start-multiple-async-tasks-and-process-them-as-they-complete">Обработка асинхронных задач по мере завершения (C#)</a> находим примечание:</p>
-<p><strong>Внимание!</strong></p>
-<p><strong>Можно использовать</strong> <code>WhenAny</code> <strong>в цикле, как описано в примере, для решения проблем, которые включают небольшое число задач. Однако когда требуется обработка большого числа задач, другие методы будут более эффективны. Дополнительные сведения и примеры см. в разделе</strong> <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/">Обработка задач по мере их завершения</a>.</p>
+<blockquote><p>Внимание!<br>Можно использовать <code>WhenAny</code> в цикле, как описано в примере, для решения проблем, которые включают небольшое число задач. Однако когда требуется обработка большого числа задач, другие методы будут более эффективны. Дополнительные сведения и примеры см. в разделе <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/">Обработка задач по мере их завершения</a>.</p>
+</blockquote>
+
 <p>Предлагаю углубиться в эту тему через мой <a href="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/">перевод этой статьи</a>.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="ckzh1v47e001fggvs1dud3roj" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="ckzp1gv3m001e0cvs421xfwjg" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
       
       
       
