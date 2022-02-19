@@ -4,20 +4,19 @@
   <meta charset="utf-8">
   
   
-  <title>Особенности Distinct на коллекциях объектов ссылочной природы | Artemio&#39;s Blog</title>
+  <title>Имплементация интерфейса IDisposable | Artemio&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Бывает, что коллекция содержит повторяющиеся объекты и требуется из неё получить коллекцию, содержащую только уникальные объекты. Этого можно добиться с помощью LINQ оператора Distinct, но есть одно н">
+  <meta name="description" content="Интерфейс IDisposable служит для освобождения неуправляемых ресурсов (unmanaged resources). Сборщик мусора в .NET автоматически не освобождает неуправляемую память. Поэтому разработан шаблон освобожде">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Особенности Distinct на коллекциях объектов ссылочной природы">
-<meta property="og:url" content="https://ostart.github.io/2021/12/14/distinct-objects/index.html">
+<meta property="og:title" content="Имплементация интерфейса IDisposable">
+<meta property="og:url" content="https://ostart.github.io/2022/02/19/idisposable/index.html">
 <meta property="og:site_name" content="Artemio&#39;s Blog">
-<meta property="og:description" content="Бывает, что коллекция содержит повторяющиеся объекты и требуется из неё получить коллекцию, содержащую только уникальные объекты. Этого можно добиться с помощью LINQ оператора Distinct, но есть одно н">
+<meta property="og:description" content="Интерфейс IDisposable служит для освобождения неуправляемых ресурсов (unmanaged resources). Сборщик мусора в .NET автоматически не освобождает неуправляемую память. Поэтому разработан шаблон освобожде">
 <meta property="og:locale" content="ru_RU">
-<meta property="article:published_time" content="2021-12-14T13:08:57.000Z">
-<meta property="article:modified_time" content="2021-12-14T15:30:32.538Z">
+<meta property="article:published_time" content="2022-02-19T08:18:09.000Z">
+<meta property="article:modified_time" content="2022-02-19T10:06:25.918Z">
 <meta property="article:author" content="Artem Ostashchenko">
 <meta property="article:tag" content="C#">
-<meta property="article:tag" content="LINQ">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Artemio's Blog" type="application/atom+xml">
@@ -81,10 +80,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-distinct-objects" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-idisposable" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/12/14/distinct-objects/" class="article-date">
-  <time class="dt-published" datetime="2021-12-14T13:08:57.000Z" itemprop="datePublished">14-12-2021</time>
+    <a href="/2022/02/19/idisposable/" class="article-date">
+  <time class="dt-published" datetime="2022-02-19T08:18:09.000Z" itemprop="datePublished">19-02-2022</time>
 </a>
     
   </div>
@@ -95,7 +94,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Особенности Distinct на коллекциях объектов ссылочной природы
+      Имплементация интерфейса IDisposable
     </h1>
   
 
@@ -103,27 +102,33 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Бывает, что коллекция содержит повторяющиеся объекты и требуется из неё получить коллекцию, содержащую только уникальные объекты. Этого можно добиться с помощью LINQ оператора Distinct, но есть одно но. Оператор Distinct() хорош с простыми типами, но если ваш объект представляет что-то посложнее (например экземпляр класса), то тут вас постигнет разочарование. Дубли так и останутся в коллекции. Это происходит потому, что оператор Distinct не умеет сравнивать экземпляры классов из-за их ссылочной природы.</p>
-<p>Чтобы заставить оператор Distinct работать корректно потребуется создать класс, реализующий интерфейс <code>IEqualityComparer&lt;T&gt;</code> и работающий с нашим классом (закрытый им). Этот интерфейс содержит всего два метода: <code>bool Equals(T x, T y)</code> и <code>int GetHashCode(T obj)</code>. Следовательно, реализовав эти два метода мы научим Distinct сравнивать объекты нашего класса, т.к. оператор Distinct имеет перегрузку, принимающую экземпляр, реализующий <em>IEqualityComparer</em> закрытый нашим классом.</p>
-<p>Допустим наш класс определён следующим образом:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Employee</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> ID &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Name &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Department &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        <p>Интерфейс <code>IDisposable</code> служит для освобождения неуправляемых ресурсов (unmanaged resources). Сборщик мусора в .NET автоматически не освобождает неуправляемую память. Поэтому разработан шаблон освобождения неуправляемых ресурсов (Dispose Pattern), таких как файловые дескрипторы, указатели на блоки неуправляемой памяти, дескрипторы реестра и т.п. Для освобождения неуправляемых ресурсов объект должен реализовывать интерфейс <code>IDisposable</code>.</p>
+<p>Интерфейс <code>IDisposable</code> требует имплементации метода без параметров <code>Dispose()</code>, а незапечатанные (non-sealed) классы дополнительно должны перегружать метод <code>Dispose(bool)</code>. Чтобы обеспечить правильное освобождение ресурсов, метод Dispose должен быть идемпотентным (т.е. чтобы его можно было без вреда вызывать несколько раз). Все последующие после первого вызовы Dispose() ничего не должны делать.</p>
+<p>Стандартная реализация публичного невиртуального метода <code>Dispose()</code>:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    Dispose(<span class="literal">true</span>); <span class="comment">// Dispose of unmanaged resources</span></span><br><span class="line">    GC.SuppressFinalize(<span class="keyword">this</span>); <span class="comment">// Suppress finalization</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>Тогда класс реализующий корректное сравнение экземпляров нашего класса будет выглядеть так:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">EmployeeComparer</span>: <span class="title">IEqualityComparer</span>&lt;<span class="title">Employee</span>&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="built_in">bool</span> <span class="title">Equals</span>(<span class="params">Employee x, Employee y</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> x.ID == y.ID;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="built_in">int</span> <span class="title">GetHashCode</span>(<span class="params">Employee obj</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> obj.GetHashCode();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Перегруженный метод <code>Dispose(bool)</code> выполняет фактическую очистку всех объектов, поэтому сборщику мусора больше не нужно вызывать финализатор объектов. Таким образом, вызов метода SuppressFinalize предотвращает запуск финализатора сборщиком мусора. Если класс не имеет финализатора, вызов <code>GC.SuppressFinalize</code> не будет оказывать никакого влияния.</p>
+<p>В перегруженном методе <code>Dispose(bool)</code> аргумент метода указывает исходит ли вызов из метода Dispose (тогда его значение true) или из финализатора (тогда его значение false).</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"><span class="built_in">bool</span> disposing</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (_disposed)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (disposing)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// <span class="doctag">TODO:</span> dispose managed state (managed objects).</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> free unmanaged resources (unmanaged objects) and override a finalizer below.</span></span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> set large fields to null.</span></span><br><span class="line"></span><br><span class="line">    _disposed = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>Теперь при вызове оператора Distinct на нашей коллекции ему требуется в параметрах передать экземпляр нашего сравнивателя EmployeeComparer:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> uniqueEmployees = employees.Distinct(<span class="keyword">new</span> EmployeeComparer()).ToList();</span><br></pre></td></tr></table></figure>
+<p>Метод немедленно возвращается, если очиска ресурсов уже имела место до этого. Отмечу, что блок выполняющий очистку неуправляемых ресурсов выполняется при любом значении аргумента disposing у метода. А вот блок освобождающий управляемые ресурсы запустится только в случае аргумента disposing равного true. Управляемые ресурсы могут состоять из объектов, реализующих IDisposable интерфейс (тогда у них просто надо каскадно вызвать Dispose() методы), либо из объектов, потребляющих большие объемы памяти или ограниченные ресурсы (тогда надо назначить ссылкам на них значение null, что освобождает их быстрее, чем если бы они были очищены в произвольный момент).</p>
+<p>Если вызов метода происходит из финализатора, то должен выполняться только код, освобождающий неуправляемые ресурсы, как ниже:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">~A()</span><br><span class="line">&#123;</span><br><span class="line">    Dispose(<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>Такой запрос уже вернёт список уникальных экземпляров нашего класса.</p>
+<p>Разработчик отвечает за то, чтобы путь с аргументом false не взаимодействовал с управляемыми объектами, которые уже могли быть удалены. Это важно, потому что порядок в котором сборщик мусора удаляет управляемые объекты во время финализации недетерминирован.</p>
+<p>Отмечу, что следует реализовать финализатор только в том случае, если у вас есть фактические неуправляемые ресурсы для удаления. Одна из основных причин реализовать финализатор состоит в том, что вы не может быть уверены инициализирован ли полностью экземпляр (например, в конструкторе может быть сгенерировано исключение). Однако если базовый класс может ссылаться только на управляемые объекты и реализовывать шаблон удаления, то в таком случае финализатор не нужен. Финализатор требуется только в том случае, если вы напрямую ссылаетесь на неуправляемые ресурсы. CLR обрабатывает финализируемые объекты иначе, чем нефинализируемые, даже если вызывается SuppressFinalize.</p>
+<p>Когда класс реализует интерфейс IDisposable, это означает, что где-то есть неуправляемые ресурсы от которых следует избавиться, когда вы закончите использовать объект этого класса. Ресурсы инкапсулированы внутри класса и вам не нужно явно удалять их. Простой вызов <code>Dispose()</code> или обертывание класса в <code>using(...) &#123;&#125;</code> позволит избавиться от любых неуправляемых ресурсов автоматически.</p>
+<p>Таким образом, вот общий шаблон для реализации Dispose Pattern:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">ClassWithFinalizer</span> : <span class="title">IDisposable</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// To detect redundant calls</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">bool</span> _disposedValue;</span><br><span class="line"></span><br><span class="line">    ~ClassWithFinalizer() =&gt; Dispose(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Public implementation of Dispose pattern callable by consumers.</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"></span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        Dispose(<span class="literal">true</span>);</span><br><span class="line">        GC.SuppressFinalize(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Protected implementation of Dispose pattern.</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"><span class="built_in">bool</span> disposing</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!_disposedValue)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (disposing)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// <span class="doctag">TODO:</span> dispose managed state (managed objects)</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> free unmanaged resources (unmanaged objects) and override finalizer</span></span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> set large fields to null</span></span><br><span class="line">            _disposedValue = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="ckztogtis000b38vsb5p2djmk" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/19/idisposable/" data-id="ckztogtj5000j38vs846360y9" data-title="Имплементация интерфейса IDisposable" class="article-share-link">Поделиться</a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
 
     </footer>
   </div>
@@ -131,19 +136,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2021/12/14/let-in-linq-queries/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Следующий</strong>
-      <div class="article-nav-title">
-        
-          Использование let для упрощения LINQ запросов
-        
-      </div>
-    </a>
   
-  
-    <a href="/2021/12/14/building-maintainable-software/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2022/02/10/processing-tasks-as-they-complete/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Предыдущий</strong>
-      <div class="article-nav-title">Разработка обслуживаемых программ на языке С#</div>
+      <div class="article-nav-title">Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;</div>
     </a>
   
 </nav>

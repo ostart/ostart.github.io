@@ -77,6 +77,73 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-snmpsim" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/22/snmpsim/" class="article-date">
+  <time class="dt-published" datetime="2021-06-22T04:11:57.000Z" itemprop="datePublished">22-06-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/22/snmpsim/">SnmpSim. Запускаем в Windows</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Как сообщает Википедия, <a target="_blank" rel="noopener" href="https://ru.wikipedia.org/wiki/SNMP">SNMP</a> (англ. Simple Network Management Protocol — простой протокол сетевого управления) — стандартный интернет-протокол для управления устройствами в IP-сетях на основе архитектур TCP/UDP. К поддерживающим SNMP устройствам относятся маршрутизаторы, коммутаторы, серверы, рабочие станции, принтеры, модемные стойки и другие. Протокол обычно используется в системах сетевого управления для контроля подключённых к сети устройств на предмет условий, которые требуют внимания администратора.</p>
+<p>Касательно принтеров возможен опрос их характеристик по SNMP-протоколу, например: количество отпечатанных листов разных форматов, количество оставшегося ресурса фотобарабана и т.д.<br>Иногда требуется симулировать ответы устройства по SNMP для целей тестирования, в том числе нагрузочного.</p>
+<p>В вопросе симуляции ответов SNMP устройств отличным помощником выступает <a target="_blank" rel="noopener" href="https://github.com/etingof/snmpsim">SNMP Simulator</a>, который сам себя характеризует как pure-Python, open source and free implementation of SNMP agents simulator. Исходные коды симулятора расположены на Github по адресу: <a target="_blank" rel="noopener" href="https://github.com/etingof/snmpsim">https://github.com/etingof/snmpsim</a></p>
+<p>Для функционирования симулятора потребуется Python любой версии из ряда: 2.4, 2.5, 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7. Скачать его можно отсюда: <a target="_blank" rel="noopener" href="https://www.python.org/downloads/">https://www.python.org/downloads/</a></p>
+<p>Для установки симулятора введите команду в терминале (PowerShell, CommandPrompt):</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$</span> pip install snmpsim</span><br></pre></td></tr></table></figure>
+
+<p>Далее для симуляции потребуется текстовый файл public.snmprec, содержащий в каждой отдельной строке:</p>
+<p>OID|тип_значения|значение</p>
+<p>Например:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1.3.6.1.2.1.1.1.0|4|Linux 2.6.25.5-smp SMP Tue Jun 19 14:58:11 CDT 2007 i686</span><br><span class="line">1.3.6.1.2.1.1.2.0|6|1.3.6.1.4.1.8072.3.2.10</span><br><span class="line">1.3.6.1.2.1.1.3.0|67|233425120</span><br><span class="line">1.3.6.1.2.1.2.2.1.6.2|4x|00127962f940</span><br><span class="line">1.3.6.1.2.1.4.22.1.3.2.192.21.54.7|64x|c3dafe61</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>Для симуляции ответов принтера используйте <strong>тип_значения</strong> равным <strong>4</strong>, что означает <strong>OctetString</strong>.</p>
+<p>Я использовал, в частности, файл public.snmprec такого вида:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1.3.6.1.2.1.43.5.1.1.17.1|4|A7980275412</span><br><span class="line">1.3.6.1.2.1.25.3.2.1.3.1|4|KONICA MINOLTA bizhub C227</span><br><span class="line">1.3.6.1.4.1.18334.1.1.1.5.7.2.3.1.5.1|4|735</span><br><span class="line">1.3.6.1.4.1.18334.1.1.1.5.7.2.2.1.5.2.1|4|190</span><br><span class="line">1.3.6.1.4.1.18334.1.1.1.5.7.2.2.1.5.1.1|4|5</span><br></pre></td></tr></table></figure>
+
+<p>При запуске симулятор будет искать файл, симулирующий ответы public.snmprec, по нескольким путям, но я рекомендую разместить public.snmprec в папке: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\&#123;userName&#125;\SNMP Simulator\Data</span><br></pre></td></tr></table></figure>
+
+<p>Запустить симулятор можно из терминала командой:</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">snmpsimd.py --data-<span class="built_in">dir</span>=./data --agent-udpv4-endpoint=<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span>:<span class="number">161</span></span><br></pre></td></tr></table></figure>
+
+<p>Симулятор будет слушать 161 порт и отвечать на входящие OID значением из файла public.snmprec, если оно там присутствует.</p>
+<p>Проверить обмен с симулятором можно с помощью программы <a target="_blank" rel="noopener" href="https://www.ireasoning.com/mibbrowser.shtml">MIB Browser</a></p>
+<img src="/2021/06/22/snmpsim/mib-browser.jpg" class="" title="MIB Browser">
+
+<p>Ну вот и всё! Спасибо <a href="mailto:etingof@gmail.com">Ilya Etingof</a> за зачётный симулятор!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckztogtjs001f38vs2geog5ea" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-github-pages" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/05/github-pages/" class="article-date">
@@ -144,7 +211,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckzp1gv35000f0cvs41tq2x3t" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckztogtiz000f38vs8ibidaev" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
       
       
       
@@ -185,7 +252,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckzp1gv2k00000cvs6mtuhhr3" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckztogtic000138vs2df7allz" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
       
       
       
@@ -236,7 +303,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckzp1gv36000g0cvs86s6g2vl" data-title="Hello World" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckztogtj3000h38vsgz5h65bq" data-title="Hello World" class="article-share-link">Поделиться</a>
       
       
       
@@ -298,6 +365,10 @@
       <ul>
         
           <li>
+            <a href="/2022/02/19/idisposable/">Имплементация интерфейса IDisposable</a>
+          </li>
+        
+          <li>
             <a href="/2022/02/10/processing-tasks-as-they-complete/">Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;</a>
           </li>
         
@@ -311,10 +382,6 @@
         
           <li>
             <a href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/14/let-in-linq-queries/">Использование let для упрощения LINQ запросов</a>
           </li>
         
       </ul>
