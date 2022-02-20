@@ -77,6 +77,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-snmpsim-docker" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/29/snmpsim-docker/" class="article-date">
+  <time class="dt-published" datetime="2021-06-29T10:11:12.000Z" itemprop="datePublished">29-06-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/29/snmpsim-docker/">SnmpSim. Запускаем в Docker</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>В предыдущем посте была рассмотрен <a href="https://ostart.github.io/2021/06/22/snmpsim/">запуск симулятора snmpsim в Windows</a>. Здесь же рассмотрим особенности запуска этого симулятора в Docker.</p>
+<p>Для запуска snmpsim в докере мы будем использовать образ python:3.7-slim-buster. Почему не Alpine можно узнать из <a target="_blank" rel="noopener" href="https://habr.com/ru/post/486202/">статьи на Хабре</a>. В целом алгоритм достаточно прост: установить из <strong>pip</strong> симулятор <em>snmpsim</em>, скопировать папку <strong>data</strong> (содержащую файл <em>public.snmprec</em>) и открыть <strong>161</strong> порт. </p>
+<p>И тут <strong>самое важное</strong>: требуется стартовать <strong>snmpsimd.py</strong> непременно из под <em>process-user</em> и <em>process-group</em> равными <strong>root</strong>.</p>
+<p>Ниже подробный Dockerfile:</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.7</span>-slim-buster</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pip install --no-cache-dir snmpsim</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> data /usr/<span class="built_in">local</span>/snmpsim/data</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">161</span>/udp</span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">&quot;snmpsimd.py&quot;</span>, <span class="string">&quot;--agent-udpv4-endpoint=0.0.0.0:161&quot;</span>, <span class="string">&quot;--process-user=root&quot;</span>, <span class="string">&quot;--process-group=root&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+<p>Файл <strong>public.snmprec</strong> из вышеупомянутой папки <em>data</em> подробно описан в <a href="https://ostart.github.io/2021/06/22/snmpsim/">предыдущем посте по snmpsim в Windows</a>.</p>
+<p>Собственно остаётся перейдти в папку с Dockerfile и выполнить команды:</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build . -t snmp-sim</span><br></pre></td></tr></table></figure>
+<p>и</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -p <span class="number">161</span>:<span class="number">161</span> snmp-sim</span><br></pre></td></tr></table></figure>
+
+<p>Проверить обмен с симулятором можно с помощью программы <a target="_blank" rel="noopener" href="https://www.ireasoning.com/mibbrowser.shtml">MIB Browser</a></p>
+<img src="/2021/06/29/snmpsim-docker/mib-browser.jpg" class="" title="MIB Browser">
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="ckzvnfual001hrovse1v54ffk" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-snmpsim" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/22/snmpsim/" class="article-date">
@@ -130,7 +182,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckztogtjs001f38vs2geog5ea" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="ckzvnfuam001krovs4a36d091" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
       
       
       
@@ -211,7 +263,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckztogtiz000f38vs8ibidaev" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="ckzvnfua3000erovs7qucaotl" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
       
       
       
@@ -252,7 +304,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckztogtic000138vs2df7allz" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="ckzvnfu9p0001rovs1pwha0vt" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
       
       
       
@@ -303,7 +355,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckztogtj3000h38vsgz5h65bq" data-title="Hello World" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="ckzvnfua4000grovs0ilv6omh" data-title="Hello World" class="article-share-link">Поделиться</a>
       
       
       
@@ -365,6 +417,10 @@
       <ul>
         
           <li>
+            <a href="/2022/02/20/iasyncdisposable/">Имплементация интерфейса IAsyncDisposable</a>
+          </li>
+        
+          <li>
             <a href="/2022/02/19/idisposable/">Имплементация интерфейса IDisposable</a>
           </li>
         
@@ -378,10 +434,6 @@
         
           <li>
             <a href="/2021/12/16/sync-from-async/">Вызов синхронного кода из асинхронного</a>
-          </li>
-        
-          <li>
-            <a href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
           </li>
         
       </ul>
