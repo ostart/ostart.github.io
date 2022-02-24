@@ -4,14 +4,22 @@
   <meta charset="utf-8">
   
   
-  <title>Метка: Swagger | Artemio&#39;s Blog</title>
+  <title>DateTime.Now vs. Stopwatch | Artemio&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Artemio&#39;s Blog">
-<meta property="og:url" content="https://ostart.github.io/tags/Swagger/index.html">
+  <meta name="description" content="Читая книгу Андрея Акиньшина “Профессиональный бенчмарк” решил проверять приводимые в книге примеры на практике (автор сам так рекомендует). Начал, конечно же, со столь любимого мною в прошлом “бенчма">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DateTime.Now vs. Stopwatch">
+<meta property="og:url" content="https://ostart.github.io/2022/02/24/datetime-vs-stopwatch/index.html">
 <meta property="og:site_name" content="Artemio&#39;s Blog">
+<meta property="og:description" content="Читая книгу Андрея Акиньшина “Профессиональный бенчмарк” решил проверять приводимые в книге примеры на практике (автор сам так рекомендует). Начал, конечно же, со столь любимого мною в прошлом “бенчма">
 <meta property="og:locale" content="ru_RU">
+<meta property="article:published_time" content="2022-02-24T08:05:33.000Z">
+<meta property="article:modified_time" content="2022-02-24T08:35:09.328Z">
 <meta property="article:author" content="Artem Ostashchenko">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="DateTime">
+<meta property="article:tag" content="Stopwatch">
+<meta property="article:tag" content="Benchmark">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Artemio's Blog" type="application/atom+xml">
@@ -75,39 +83,66 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2022" class="archive-year">2022</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2022/02/24/swagger-xml-comments/" class="archive-article-date">
-  <time class="dt-published" datetime="2022-02-24T07:15:31.000Z" itemprop="datePublished">февр. 24</time>
+        <section id="main"><article id="post-datetime-vs-stopwatch" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/24/datetime-vs-stopwatch/" class="article-date">
+  <time class="dt-published" datetime="2022-02-24T08:05:33.000Z" itemprop="datePublished">24-02-2022</time>
 </a>
-      
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2022/02/24/swagger-xml-comments/">Особенность отображения Swagger&#39;ом XML комментариев</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      DateTime.Now vs. Stopwatch
     </h1>
   
 
-    </header>
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Читая книгу Андрея Акиньшина “Профессиональный бенчмарк” решил проверять приводимые в книге примеры на практике (автор сам так рекомендует). Начал, конечно же, со столь любимого мною в прошлом “бенчмарка новичков”: измерения <code>DateTime.Now</code> до и после испытуемого на скорость кода и последующего вычисления разности. </p>
+<p>Но вот в чем засада по словам автора: для <code>Windows10</code> частота обновления DateTime по умолчанию 64Гц. А это значит, что новое значение получается с интервалами 15,625 мс и это же значение составляет точность подхода с DateTime. Т.е для всех операций, которые выполнятся быстрее 15,625 мс мы получим значение времени выполнения интересующего кода равное 0, либо, если не повезёт, то 15,625 мс. Такая точность не всегда бывает недопустима, особенно если испытуемый на скорость код выполняется быстрее.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> list = Enumerable.Range(<span class="number">0</span>, <span class="number">10000</span>).ToList();</span><br><span class="line">DateTime start = DateTime.Now;</span><br><span class="line">list.Sort();</span><br><span class="line">DateTime end = DateTime.Now;</span><br><span class="line">TimeSpan elapsedTime = end - start;</span><br><span class="line">Console.WriteLine(elapsedTime.TotalMilliseconds);</span><br></pre></td></tr></table></figure>
+
+<p>Пробую код из книги на <code>Windows10</code> C#6.0 и получаю результаты около 4,5 мс. Предсказанный Андреем 0 никак получить не удалось, как и собственно 15,625 мс.</p>
+<p>Двигаемся дальше.</p>
+<p>По словам автора, лучшей альтернативой <code>DateTime.Now</code> является класс <code>System.Diagnostics.Stopwatch</code>. Типичное разрешение Stopwatch в <code>Windows10</code> составляет величину порядка 300-500 нс.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> list = Enumerable.Range(<span class="number">0</span>, <span class="number">10000</span>).ToList();</span><br><span class="line"><span class="keyword">var</span> stopwatch = System.Diagnostics.Stopwatch.StartNew();</span><br><span class="line">list.Sort();</span><br><span class="line">stopwatch.Stop();</span><br><span class="line">TimeSpan elapsedTime = stopwatch.Elapsed;</span><br><span class="line">Console.WriteLine(elapsedTime.TotalMilliseconds);</span><br></pre></td></tr></table></figure>
+
+<p>Этот код на машине автора выдавал результат в 0,05 мс. Однако на моей машине средний результат крутился в районе 0,491 мс, что в 10 раз больше, чем ожидалось!</p>
+<p>Никакого анализа причин этих цифр пока привести не могу. Только начинаю погружаться в тонкости бенчмарка. Однако отмечу, что поведение <code>DateTime.Now</code> на моей машине много точнее, чем на машине автора, а <code>System.Diagnostics.Stopwatch</code> на моей машине на порядок хуже, чем на машине автора. В целом нужно согласиться с автором, что <code>Stopwatch</code> точнее (в моей случае на порядок), чем <code>DateTime.Now</code>.</p>
+<p>Также следует иметь ввиду, что кроме низкого разрешения DateTime.Now работает медленнее DateTime.UtcNow, т.к. он пересчитывает часовые пояса. Соглашусь с советом Андрея Акиньшина, что в 99% случаев следует выбирать Stopwatch, а не DateTime. DateTime может потребоваться только в случае, если вам действительно нужно знать текущее время. Если реальное время не требуется, то используйте Stopwatch.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2022/02/24/datetime-vs-stopwatch/" data-id="cl00qew62000cdkvs87ee2df6" data-title="DateTime.Now vs. Stopwatch" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Benchmark/" rel="tag">Benchmark</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DateTime/" rel="tag">DateTime</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Stopwatch/" rel="tag">Stopwatch</a></li></ul>
+
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2022/02/24/swagger-xml-comments/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Предыдущий</strong>
+      <div class="article-nav-title">Особенность отображения Swagger&#39;ом XML комментариев</div>
+    </a>
+  
+</nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
 
 
 </section>
