@@ -99,16 +99,16 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Потребовалось мне давеча, в рамках тестирования, формировать <code>Guid</code> таким образом, чтобы он формировался не случайно, а нужным мне управляемым способом. А именно: мне потребовалось, чтобы при использовании цикла по int формировался <code>Guid</code> так:</p>
+        <p>Потребовалось давеча в рамках тестирования формировать <code>Guid</code> таким образом, чтобы он генерировался не случайно, а нужным мне управляемым способом. А именно так, чтобы при использовании цикла <code>for</code> по <code>int</code> формировался <code>Guid</code> следующим образом:</p>
 <p>для int = 1 получить Guid = ‘00000000-0000-0000-0000-000000000001’<br>для int = 2 получить Guid = ‘00000000-0000-0000-0000-000000000002’<br>для int = 3 получить Guid = ‘00000000-0000-0000-0000-000000000003’</p>
-<p>и так далее.</p>
+<p>и так далее…</p>
 <p>Как этого добиться? Решение данной задачи представлено ниже:</p>
 <figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Guid <span class="title">ToGuid</span>(<span class="params"><span class="built_in">int</span> <span class="keyword">value</span></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> bytes = <span class="keyword">new</span> <span class="built_in">byte</span>[<span class="number">16</span>];</span><br><span class="line">    BitConverter.GetBytes(<span class="keyword">value</span>).CopyTo(bytes, <span class="number">0</span>);</span><br><span class="line">    bytes = bytes.Reverse().ToArray();</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Guid(bytes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/03/17/int-to-guid/" data-id="cl0v0579y000l6kvsgd02asn8" data-title="Как преобразовать int в Guid заданным способом" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/03/17/int-to-guid/" data-id="cl0vvzyly000n68vs1wac0yys" data-title="Как преобразовать int в Guid заданным способом" class="article-share-link">Поделиться</a>
       
       
       
@@ -162,7 +162,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/03/17/switch-by-property-values/" data-id="cl0v057ae001k6kvs4ytf961e" data-title="Сопоставление с образцом на основе значений свойств объекта" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/03/17/switch-by-property-values/" data-id="cl0vvzymk001q68vs1877eofs" data-title="Сопоставление с образцом на основе значений свойств объекта" class="article-share-link">Поделиться</a>
       
       
       
@@ -214,7 +214,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/24/datetime-vs-stopwatch/" data-id="cl0v0579t000c6kvs2h2l08ml" data-title="DateTime.Now vs. Stopwatch" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/24/datetime-vs-stopwatch/" data-id="cl0vvzylp000d68vsbld45opo" data-title="DateTime.Now vs. Stopwatch" class="article-share-link">Поделиться</a>
       
       
       
@@ -264,7 +264,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/24/swagger-xml-comments/" data-id="cl0v057af001n6kvseb9f0isq" data-title="Особенность отображения Swagger&#39;ом XML комментариев" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/24/swagger-xml-comments/" data-id="cl0vvzymi001n68vs7qvjdg30" data-title="Особенность отображения Swagger&#39;ом XML комментариев" class="article-share-link">Поделиться</a>
       
       
       
@@ -316,7 +316,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/20/iasyncdisposable/" data-id="cl0v0579x000j6kvs4vla2xuy" data-title="Имплементация интерфейса IAsyncDisposable" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/20/iasyncdisposable/" data-id="cl0vvzylv000j68vs2uz34en2" data-title="Имплементация интерфейса IAsyncDisposable" class="article-share-link">Поделиться</a>
       
       
       
@@ -374,7 +374,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/19/idisposable/" data-id="cl0v0579z000n6kvsbe29emzb" data-title="Имплементация интерфейса IDisposable" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/19/idisposable/" data-id="cl0vvzylw000l68vs4b134vg7" data-title="Имплементация интерфейса IDisposable" class="article-share-link">Поделиться</a>
       
       
       
@@ -454,7 +454,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="cl0v057a700156kvshsj23yu5" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="cl0vvzym8001768vscszt63sq" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
       
       
       
@@ -518,7 +518,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="cl0v057ah001v6kvsd0li305h" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="cl0vvzymp001y68vsag680oto" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
       
       
       
@@ -566,7 +566,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="cl0v057ag001r6kvs4d9z2kbl" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="cl0vvzymo001w68vsglxpho2h" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
       
       
       
@@ -629,7 +629,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="cl0v057ah001t6kvs2k5x2yez" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="cl0vvzymq002168vs6pn8euqw" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
       
       
       
