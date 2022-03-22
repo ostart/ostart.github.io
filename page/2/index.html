@@ -77,6 +77,69 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-valuetask" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/16/valuetask/" class="article-date">
+  <time class="dt-published" datetime="2021-12-16T10:01:15.000Z" itemprop="datePublished">16-12-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/16/valuetask/">Особенности работы ValueTask</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Класс <code>Task</code> и <code>Task&lt;T&gt;</code> являются ссылочными типами и потому для них выделяется память на куче каждый раз когда асинхронный метод возвращает одного из них (плюс работает сборщик мусора). А для типов-значений память выделяется в месте их определения и они никак не задействуют сборщик мусора. Также важной фишкой тасков является тот факт, что рантайм кеширует их. Вместо того чтобы эвейтить (await) метод можно просто получить ссылку на таску, возвращаемую асинхронным методом, а с этой ссылкой можно вызывать несколько задач одновременно. Также можно вызывать эту задачу более одного раза. Важно, что рантайм кэширует таску, что сказывается на потреблении памяти.</p>
+<p>Для высокопроизводительных решений большое количество выделенных объектов типа Task могут представлять проблему, поэтому возможность исключить выделение памяти для тасок в куче плюс сборку мусора может представлять выгоду.</p>
+<p>Начиная с .NET Core 2.0 в C# появились две структуры: <code>ValueTask</code> и <code>ValueTask&lt;T&gt;</code>, которые можно возвращать из асинхронных методов. Они размещаются в стэке и разработаны для увеличения производительности асинхронных методов в случаях, когда издержки на выделение памяти в куче критичны для производительности. Рантайм их не кэширует, что уменьшает выделение памяти и упрощает управление ею. Казалось бы, заменяй возвращаемый методом тип с <code>Task</code> на <code>ValueTask</code> (либо <code>Task&lt;T&gt;</code> на <code>ValueTask&lt;T&gt;</code>) и радуйся жизни, но есть пару но… как обычно…</p>
+<p>Важным условие использования структур <code>ValueTask/ValueTask&lt;T&gt;</code> является обязательность ожидания их await-ом из асинхронного метода и невозможность их повторного вызова. Это может иметь большое значение, если вы разрабатываете библиотеки переиспользуемые другими разработчиками, т.к. у них сразу исключаются сценарии одновременной параллельной работы с тасками. Тут обычным таскам нет альтернативы.</p>
+<p>Структура <code>ValueTask&lt;TResult&gt;</code> способна обернуть как <code>TResult</code>, так и <code>Task&lt;TResult&gt;</code>. Её можно возвращать из async метода, причём если этот метод выполнится синхронно, то никакого объекта в куче размещать не будет. В случае асинхронного выполнения объект <code>Task&lt;TResult&gt;</code> будет размещён в куче, а <code>ValueTask&lt;TResult&gt;</code> обернёт его, чтобы минимизировать размер структуры и оптимизировать случай успешного исполнения. Аsync метод, который завершается исключением, тоже будет размещать <code>Task&lt;TResult&gt;</code> внутри, и <code>ValueTask&lt;TResult&gt;</code> обернёт его и не будет таскать с собой дополнительное поле для хранения Exception.</p>
+<p>Поэтому важно осознавать существующие значительные ограничения в применении <code>ValueTask/ValueTask&lt;T&gt;</code> в сравнении с <code>Task/Task&lt;T&gt;</code>, если отклониться от обычного сценария простого ожидания await.</p>
+<p>Следующие операции никогда не должны выполняться с <code>ValueTask/ValueTask&lt;T&gt;</code>:</p>
+<ul>
+<li><p>Повторное ожидание <code>ValueTask/ValueTask&lt;T&gt;</code><br>Объект результата может уже быть утилизирован и использоваться в другой операции. Напротив, <code>Task/Task&lt;T&gt;</code> никогда не переходит из завершённого состояния в незавершённое, поэтому вы можете повторно ожидать его столько раз, сколько потребуется и получать один и тот же результат каждый раз.</p>
+</li>
+<li><p>Параллельное ожидание <code>ValueTask/ValueTask&lt;T&gt;</code><br>Объект результата ожидает обработки только одним callbackом от одного потребителя в один момент времени, и попытка его ожидания из разных потоков одновременно может легко привести к гонкам и трудноуловимым ошибкам программы. В сравнении с этим, <code>Task/Task&lt;T&gt;</code> обеспечивает любое количество параллельных awaitов.</p>
+</li>
+</ul>
+<p>Если из метода получили <code>ValueTask/ValueTask&lt;T&gt;</code>, но необходимо выполнить одну из двух операций вышеописанных операций, то можно использовать <code>.AsTask()</code>. После этого работать с полученной такской как обычно, однако больше вы не сможете использовать изначальный <code>ValueTask/ValueTask&lt;T&gt;</code>.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ValueTask&lt;<span class="built_in">int</span>&gt; <span class="title">SomeMethodAsync</span>(<span class="params"></span>)</span> &#123;...&#125;;</span><br><span class="line">...</span><br><span class="line">Task&lt;<span class="built_in">int</span>&gt; t = SomeMethodAsync().AsTask();</span><br></pre></td></tr></table></figure>
+
+<p>Короче говоря, при применении <code>ValueTask/ValueTask&lt;T&gt;</code> вы должны или await его непосредственно (возможно с <code>.ConfigureAwait(false))</code> или вызвать <code>.AsTask()</code> и больше его не использовать.</p>
+<p>Однако <code>ValueTask/ValueTask&lt;T&gt;</code> будет отличным выбором когда:</p>
+<ul>
+<li>вы ожидаете, что вызывать ваш метод будут только с await</li>
+<li>затраты на выделение памяти критичны для вашего приложения</li>
+<li>синхронное выполнение будет происходить часто</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="cl11royh40023i4vs12h2gvfs" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-let-in-linq-queries" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/14/let-in-linq-queries/" class="article-date">
@@ -113,7 +176,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="cl0vvzym0000s68vsa9hwdq34" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="cl11roygi000xi4vsh03gdt0h" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
       
       
       
@@ -165,7 +228,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="cl0vvzylj000968vsgwef090s" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="cl11royg4000bi4vs2fwl1x9k" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -230,7 +293,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="cl0vvzykz000168vsaqmn1zwx" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="cl11royfu0003i4vs9mluf6ul" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -290,7 +353,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="cl0vvzyma001c68vsa3kr3nh7" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="cl11roygv001fi4vscdl0dpjl" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -370,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="cl0vvzyma001b68vs3hg671e2" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="cl11roygs0018i4vs22dd2zzy" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -415,7 +478,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="cl0vvzylz000q68vsa1ulbokj" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="cl11roygh000ui4vshhc791wj" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
@@ -460,7 +523,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="cl0vvzym9001868vs0jil6x99" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="cl11roygr0015i4vsf6vidsz0" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
       
       
       
@@ -547,7 +610,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="cl0vvzylo000c68vsbawn3nwr" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="cl11royg4000ai4vs5myjb8bu" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
       
       
       
@@ -602,72 +665,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="cl0vvzym2000x68vs6s6v2bwy" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="cl11roygl0010i4vscffabz51" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-topshelf" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/09/30/topshelf/" class="article-date">
-  <time class="dt-published" datetime="2021-09-30T13:05:13.000Z" itemprop="datePublished">30-09-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/09/30/topshelf/">Разрабатываем Windows-службы с помощью TopShelf</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Все, кто сталкивались с разработкой служб для операционной системы Windows, отмечали трудность отладки подобного ПО. Трудности старта разработки кода решаются шаблонами Visual Studio для Windows-служб, но вот сама отладка – очень неудобная. Приходится подключаться к запущеному процессу через Debug –&gt; Attach to Process… , выбирать процесс, ставить точку останова и т.д. Но всё изменилось когда появился <a target="_blank" rel="noopener" href="http://topshelf-project.com/">TopShelf</a>. Этот фреймворк (<em>а именно так они себя величают</em>) позволяет разрабатывать и отлаживать Windows-службы как обычные консольные приложения!</p>
-<p>Рассмотрим как разрабатывать Windows-службы с помощью <a target="_blank" rel="noopener" href="http://docs.topshelf-project.com/en/latest/">TopShelf</a>.</p>
-<p>Установить TopShelf в ваш проект можно через менеджер пакетов NuGet:</p>
-<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nuget <span class="built_in">Install-Package</span> Topshelf</span><br></pre></td></tr></table></figure>
-
-<p>Посмотреть исходный код фреймворка <strong>TopShelf</strong> можно на <a target="_blank" rel="noopener" href="https://github.com/Topshelf/Topshelf">GitHub</a></p>
-<p>Основной класс (в нашем случае <em>AuthApiService</em>) должен содержать методы <code>public void Start()</code> и <code>public void Stop()</code>, которые используются <strong>TopShelf</strong> при старте и остановке службы. В моём случае файл <em>Program.cs</em> же будет иметь следующий вид:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Topshelf;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="built_in">string</span> ServiceName = <span class="string">&quot;Authentication and WebAPI service&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        HostFactory.Run(config =&gt;</span><br><span class="line">        &#123;</span><br><span class="line">            config.StartAutomatically(); <span class="comment">// startup type</span></span><br><span class="line">            config.EnableShutdown();</span><br><span class="line">            config.Service&lt;AuthApiService&gt;(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.ConstructUsing(svc =&gt; <span class="keyword">new</span> AuthApiService());</span><br><span class="line">                service.WhenStarted(svc =&gt; svc.Start());</span><br><span class="line">                service.WhenStopped(svc =&gt; svc.Stop());</span><br><span class="line">            &#125;);</span><br><span class="line">            config.RunAsLocalSystem();</span><br><span class="line">            config.SetServiceName(ServiceName);</span><br><span class="line">            config.SetDisplayName(ServiceName);</span><br><span class="line">            config.SetDescription(ServiceName);</span><br><span class="line">            config.EnableServiceRecovery(service =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                service.OnCrashOnly();</span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// first failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">0</span>); <span class="comment">// second failure</span></span><br><span class="line">                service.RestartService(delayInMinutes: <span class="number">1</span>); <span class="comment">// subsequent failures</span></span><br><span class="line">                service.SetResetPeriod(days: <span class="number">1</span>); <span class="comment">// reset period for restart options</span></span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);                                          </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Всю магию делает метод <em>HostFactory.Run</em>. В нём указывается класс основного тела службы с методами <em>Start</em> и <em>Stop</em>, задаётся имя службы и описание в менеджере служб Windows (<em>Services</em>). <strong>TopShelf</strong> позволяет провести почти такую же настройку режима работы службы, которую выполняет менеджер служб Windows, в частности задать из под кого будет запускаться служба <code>RunAsLocalSystem</code> или задать параметры перезапуска в случае падения службы с помощью <code>EnableServiceRecovery</code>.</p>
-<p>Установить службу в операционную систему Windows можно из командной строки, запущенной от Администратора, прямо в папке где находится служба командой: </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AuthApiService.exe install</span><br></pre></td></tr></table></figure>
-
-<p>Удалить службу можно командой:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AuthApiService.exe uninstall</span><br></pre></td></tr></table></figure>
-
-<p>Всю магию установки и настройки службы берёт на себя <strong>Topshelf</strong>! </p>
-<p>Службу можно установить и самостоятельно, но тогда настройки из раздела <code>EnableServiceRecovery</code> применены не будут.</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc create &quot;Authentication and WebAPI service&quot; binPath=&quot;&lt;путь_к_службе&gt;\AuthService.exe&quot;</span><br></pre></td></tr></table></figure>
-
-<p>Удалить службу самостоятельно можно командой:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc delete &quot;Authentication and WebAPI service&quot;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="cl0vvzymm001u68vsg3fx23u5" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li></ul>
 
     </footer>
   </div>
@@ -695,7 +697,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Метки</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Benchmark/" rel="tag">Benchmark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DateTime/" rel="tag">DateTime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guid/" rel="tag">Guid</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RPM/" rel="tag">RPM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPEC/" rel="tag">SPEC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Stopwatch/" rel="tag">Stopwatch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swagger/" rel="tag">Swagger</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bash/" rel="tag">bash</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/switch/" rel="tag">switch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Benchmark/" rel="tag">Benchmark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DateTime/" rel="tag">DateTime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guid/" rel="tag">Guid</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RPM/" rel="tag">RPM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPEC/" rel="tag">SPEC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SelectMany/" rel="tag">SelectMany</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Stopwatch/" rel="tag">Stopwatch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swagger/" rel="tag">Swagger</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bash/" rel="tag">bash</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/switch/" rel="tag">switch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
     </div>
   </div>
 
@@ -705,7 +707,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Облако меток</h3>
     <div class="widget tagcloud">
-      <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 16.67px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 13.33px;">Linux</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 13.33px;">RPM</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 13.33px;">Windows-service</a> <a href="/tags/bash/" style="font-size: 13.33px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 10px;">switch</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 16.67px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 13.33px;">Linux</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 13.33px;">RPM</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 13.33px;">Windows-service</a> <a href="/tags/bash/" style="font-size: 13.33px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 10px;">switch</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -727,6 +729,10 @@
       <ul>
         
           <li>
+            <a href="/2022/03/22/select-many/">LINQ оператор SelectMany</a>
+          </li>
+        
+          <li>
             <a href="/2022/03/17/int-to-guid/">Как преобразовать int в Guid заданным способом</a>
           </li>
         
@@ -740,10 +746,6 @@
         
           <li>
             <a href="/2022/02/24/swagger-xml-comments/">Особенность отображения Swagger&#39;ом XML комментариев</a>
-          </li>
-        
-          <li>
-            <a href="/2022/02/20/iasyncdisposable/">Имплементация интерфейса IAsyncDisposable</a>
           </li>
         
       </ul>
