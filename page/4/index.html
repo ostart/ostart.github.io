@@ -77,6 +77,92 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-simple-snmp-server" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/08/12/simple-snmp-server/" class="article-date">
+  <time class="dt-published" datetime="2021-08-12T12:22:45.000Z" itemprop="datePublished">12-08-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/08/12/simple-snmp-server/">Простой SNMP сервер на C#</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Простой SNMP сервер непрерывно слушает порт (161 для симулятора МФУ) и проверяет присутствие пришедшей по UDP команды OID в словаре dictionary. В качестве ключа dictionary содержит OID команду, а в качестве значения - ответ МФУ на неё. Словарь dictionary формируется при инициализации приложения из appSettings.json. При наличии ключа отправляется ответ отправителю запроса. </p>
+<p>Обратите внимание на метод <em>string ConvertBytesToStringOid(byte[] oidBytes)</em>, преобразующий пришедшие байты OID команды в текстовое значение к которому мы привыкли (вида 1.3.6.1.2.1.43.5.1.1.17.1). Именно оно используется для поиска в словаре dictionary.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">SnmpServer</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">StartListening</span>(<span class="params">Dictionary&lt;<span class="built_in">string</span>, <span class="built_in">string</span>&gt; dictionary, <span class="built_in">int</span> port</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">var</span> receiver = <span class="keyword">new</span> UdpClient(port); <span class="comment">// UdpClient для получения данных</span></span><br><span class="line">            IPEndPoint remoteIp = <span class="literal">null</span>; <span class="comment">// адрес входящего подключения</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">try</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">while</span> (<span class="literal">true</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="keyword">var</span> data = receiver.Receive(<span class="keyword">ref</span> remoteIp); <span class="comment">// получаем данные</span></span><br><span class="line">                    <span class="built_in">int</span> requestIdBytesLength = data[<span class="number">16</span>];</span><br><span class="line">                    <span class="keyword">var</span> requestIdBytes = <span class="keyword">new</span> <span class="built_in">byte</span>[requestIdBytesLength];</span><br><span class="line">                    Buffer.BlockCopy(data, <span class="number">17</span>, requestIdBytes, <span class="number">0</span>, requestIdBytesLength);</span><br><span class="line">                    <span class="built_in">int</span> inputOidLength = data[<span class="number">32</span>];</span><br><span class="line">                    <span class="keyword">var</span> inputOidBytes = <span class="keyword">new</span> <span class="built_in">byte</span>[inputOidLength];</span><br><span class="line">                    Buffer.BlockCopy(data, <span class="number">33</span>, inputOidBytes, <span class="number">0</span>, inputOidLength);</span><br><span class="line">                    <span class="keyword">var</span> inputOid = ConvertBytesToStringOid(inputOidBytes);</span><br><span class="line">                    <span class="keyword">if</span> (dictionary.TryGetValue(inputOid, <span class="keyword">out</span> <span class="keyword">var</span> oidValue))</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="keyword">var</span> sender = <span class="keyword">new</span> UdpClient(remoteIp.Address.ToString(), remoteIp.Port);</span><br><span class="line">                        <span class="keyword">var</span> oidValueBytes = Encoding.ASCII.GetBytes(oidValue);</span><br><span class="line">                        <span class="keyword">var</span> response = GenerateOidBytesResponse(</span><br><span class="line">                            requestIdBytes, </span><br><span class="line">                            inputOidBytes, </span><br><span class="line">                            oidValueBytes</span><br><span class="line">                        );</span><br><span class="line">                        sender.Send(response, response.Length); <span class="comment">// отправка</span></span><br><span class="line">                        sender.Close();</span><br><span class="line">                        sender.Dispose();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            catch (Exception)</span><br><span class="line">            &#123;</span><br><span class="line">                receiver.Close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="built_in">byte</span>[] <span class="title">GenerateOidBytesResponse</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="built_in">byte</span>[] requestIdBytes, </span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="built_in">byte</span>[] inputOidBytes, </span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="built_in">byte</span>[] oidValueBytes</span></span></span><br><span class="line"><span class="params"><span class="function">    </span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">var</span> result1 = <span class="keyword">new</span> List&lt;<span class="built_in">byte</span>&gt;(oidValueBytes);</span><br><span class="line">        result1.Insert(<span class="number">0</span>, (<span class="built_in">byte</span>)oidValueBytes.Length);</span><br><span class="line">        result1.Insert(<span class="number">0</span>, <span class="number">0x04</span>);</span><br><span class="line">        <span class="keyword">var</span> result2 = <span class="keyword">new</span> List&lt;<span class="built_in">byte</span>&gt;(inputOidBytes);</span><br><span class="line">        result2.AddRange(result1);</span><br><span class="line">        result2.Insert(<span class="number">0</span>, (<span class="built_in">byte</span>)inputOidBytes.Length);</span><br><span class="line">        result2.Insert(<span class="number">0</span>, <span class="number">0x06</span>);</span><br><span class="line">        result2.Insert(<span class="number">0</span>, (<span class="built_in">byte</span>)result2.Count);</span><br><span class="line">        result2.Insert(<span class="number">0</span>, <span class="number">0x30</span>);</span><br><span class="line">        result2.Insert(<span class="number">0</span>, (<span class="built_in">byte</span>)result2.Count);</span><br><span class="line">        result2.Insert(<span class="number">0</span>, <span class="number">0x30</span>);</span><br><span class="line">        </span><br><span class="line">        Magic210(result2);</span><br><span class="line">        Magic210(result2);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> result3 = <span class="keyword">new</span> List&lt;<span class="built_in">byte</span>&gt;(requestIdBytes);</span><br><span class="line">        result3.AddRange(result2);</span><br><span class="line">        result3.Insert(<span class="number">0</span>, (<span class="built_in">byte</span>)requestIdBytes.Length);</span><br><span class="line">        result3.Insert(<span class="number">0</span>, <span class="number">0x02</span>);</span><br><span class="line">        result3.Insert(<span class="number">0</span>, (<span class="built_in">byte</span>)result3.Count);</span><br><span class="line">        result3.Insert(<span class="number">0</span>, <span class="number">0xa2</span>);</span><br><span class="line"></span><br><span class="line">        CommunityPublic(result3);</span><br><span class="line">        Magic210(result3);</span><br><span class="line">        </span><br><span class="line">        result3.Insert(<span class="number">0</span>, (<span class="built_in">byte</span>)result3.Count);</span><br><span class="line">        result3.Insert(<span class="number">0</span>, <span class="number">0x30</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> result3.ToArray();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">CommunityPublic</span>(<span class="params">List&lt;<span class="built_in">byte</span>&gt; list</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x63</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x69</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x6c</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x62</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x75</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x70</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x06</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x04</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Magic210</span>(<span class="params">List&lt;<span class="built_in">byte</span>&gt; list</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x00</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x01</span>);</span><br><span class="line">        list.Insert(<span class="number">0</span>, <span class="number">0x02</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="built_in">string</span> <span class="title">ConvertBytesToStringOid</span>(<span class="params"><span class="built_in">byte</span>[] oidBytes</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">var</span> builder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">var</span> result = <span class="keyword">new</span> List&lt;<span class="built_in">uint</span>&gt; &#123; (<span class="built_in">uint</span>)(oidBytes[<span class="number">0</span>] / <span class="number">40</span>), (<span class="built_in">uint</span>)(oidBytes[<span class="number">0</span>] % <span class="number">40</span>) &#125;;</span><br><span class="line">        </span><br><span class="line">        <span class="built_in">uint</span> buffer = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">1</span>; i &lt; oidBytes.Length; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> ((oidBytes[i] &amp; <span class="number">0x80</span>) == <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                result.Add(oidBytes[i] + (buffer &lt;&lt; <span class="number">7</span>));</span><br><span class="line">                buffer = <span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                buffer &lt;&lt;= <span class="number">7</span>;</span><br><span class="line">                buffer += (<span class="built_in">uint</span>)(oidBytes[i] &amp; <span class="number">0x7F</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; result.Count; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            builder.Append(result[i]);</span><br><span class="line">            <span class="keyword">if</span> (i != result.Count - <span class="number">1</span>) builder.Append(<span class="string">&#x27;.&#x27;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> builder.ToString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/08/12/simple-snmp-server/" data-id="cl1ewxr3v001dh0vs6vch7lxu" data-title="Простой SNMP сервер на C#" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/server/" rel="tag">server</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-snmp-response-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/08/12/snmp-response-structure/" class="article-date">
+  <time class="dt-published" datetime="2021-08-12T11:36:55.000Z" itemprop="datePublished">12-08-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/08/12/snmp-response-structure/">Структура SNMP ответа get-response</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Давайте взглянем на структуру SNMP ответа get-response с помощью Wireshark:</p>
+<img src="/2021/08/12/snmp-response-structure/get-response.jpg" class="" title="Структура SNMP ответа get-response (Wireshark)">
+
+<p>Пакет начинается с байта 0x30 и содержит в нашем примере всего 59 байтов. Второй байт 0x39 показывает длину последующего массива отправляемых байтов (0x39<sub>16</sub> = 57<sub>10</sub>). Пятый байт 0x00 показывает номер версии version-1, за которым следует указатель community и байт его длины 0x06 (6 байт). Значение community начинается в нашем случае с 8-го байта и идёт до 13 байта включительно (0x70 0x75 0x62 0x6C 0x69 0x63). Дальше следуют байты данных самого get-response: открывающий байт 0xA2, длина последующих байтов 0x2C (44 байта), открывающий байт идентификатора запроса 0x02 и длина request-id 0x04. Значение request-id начинается с 18 байта и идёт в нашем случае до 21 байта (0x0B 0x5E 0xA0 0x42), что составляет значение 190750786. Величина request-id соответствует величине request-id пришедшего в SNMP запросе get-request. Далее 24-м байтом идёт error-status, 27-м байтом идёт error-index, а 28-м байтом идёт открывающий байт 0x30 и длина последующих байтов 0x1E (30 байтов). 30-м байтом идёт открывающий байт 0x30 и длина последующих байтов 0x1С (28 байтов). Затем опять повторяется OID, пришедший в запросе get-request, а именно байт длины 0x0B (11 байтов) и их значение: 0x2B 0x06 0x01 0x02 0x01 0x2B 0x05 0x01 0x01 0x11 0x01, что составляет значение 1.3.6.1.2.1.43.5.1.1.17.1. Далее 45-м байтом идёт байт 0x04, что означает что далее последует значение в OctetString и 46-м байтом следует длина последующего значения 0x0D (13 байтов): 0x41 0x37 0x39 0x38 0x30 0x32 0x37 0x35 0x34 0x31 0x32 0x34 0x36, что является серийным номером МФУ А798027541246.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-response-structure/" data-id="cl1ewxr3y001lh0vshokf2ky9" data-title="Структура SNMP ответа get-response" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-snmp-request-structure" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/08/12/snmp-request-structure/" class="article-date">
@@ -107,7 +193,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="cl11roygw001ii4vsf27c120w" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/12/snmp-request-structure/" data-id="cl1ewxr3y001jh0vsa897ae2e" data-title="Структура SNMP запроса get-request" class="article-share-link">Поделиться</a>
       
       
       
@@ -253,7 +339,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="cl11roygn0013i4vs51skfppv" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/08/03/pragmatic-programmer/" data-id="cl1ewxr3r0016h0vs3z1t0qw8" data-title="О книге &#34;Программист-прагматик&#34; Дэвида Томаса и Эндрю Ханта" class="article-share-link">Поделиться</a>
       
       
       
@@ -311,7 +397,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="cl11royh50025i4vsfkn114dx" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/23/venis-IX/" data-id="cl1ewxr470026h0vsgjmo6ary" data-title="Работа с NSIS скриптами в Venis_IX" class="article-share-link">Поделиться</a>
       
       
       
@@ -389,7 +475,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="cl11roygl0011i4vs6s0m0ubv" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/18/nsis-scripting/" data-id="cl1ewxr3n000zh0vsh14sh7pf" data-title="Введение в синтаксис NSIS скриптов" class="article-share-link">Поделиться</a>
       
       
       
@@ -457,7 +543,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="cl11roygj000yi4vsbrdh1mvp" data-title="О NSIS" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/07/17/nsis-intro/" data-id="cl1ewxr3m000yh0vsgjmjary9" data-title="О NSIS" class="article-share-link">Поделиться</a>
       
       
       
@@ -509,7 +595,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="cl11roygy001pi4vsdejw7q0s" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/29/snmpsim-docker/" data-id="cl1ewxr3z001oh0vsfl2qb9uk" data-title="SnmpSim. Запускаем в Docker" class="article-share-link">Поделиться</a>
       
       
       
@@ -576,7 +662,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="cl11roygy001ni4vs3hemhfyz" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/22/snmpsim/" data-id="cl1ewxr40001qh0vsgw229akl" data-title="SnmpSim. Запускаем в Windows" class="article-share-link">Поделиться</a>
       
       
       
@@ -657,7 +743,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="cl11royg9000gi4vs253h0j93" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/06/05/github-pages/" data-id="cl1ewxr3d000fh0vs1kuu69vb" data-title="Алгоритм создания блога на GitHub Pages" class="article-share-link">Поделиться</a>
       
       
       
@@ -671,101 +757,11 @@
 
 
   
-    <article id="post-blog-subjects" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/03/blog-subjects/" class="article-date">
-  <time class="dt-published" datetime="2021-06-03T04:21:54.000Z" itemprop="datePublished">03-06-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/03/blog-subjects/">О чем этот блог</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Меня зовут Артём Остащенко. Я - C#.NET разработчик, балующийся фронтендом. Так как я по образованию инженер в области материалов и компонентов твердотельной электроники, то программирование изучал самостоятельно. В этом мне очень помогли <a target="_blank" rel="noopener" href="https://itvdn.com/ru">ITVDN</a>, <a target="_blank" rel="noopener" href="https://ru.hexlet.io/">Hexlet</a>, <a target="_blank" rel="noopener" href="https://htmlacademy.ru/">HTML Academy</a>, <a target="_blank" rel="noopener" href="https://ulearn.me/">Ulearn.me</a>, <a target="_blank" rel="noopener" href="https://stepik.org/">Stepik</a> и <a target="_blank" rel="noopener" href="https://vk.com/lambda_brain">Сергей Игоревич Бобровский</a>. Этот блог будет посвящён разработке ПО для принтеров, электросчётчиков, C#, фронтенду (JS, React) и книгам, которые я прочёл и рекомендую другим.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/blog-subjects/" data-id="cl11royfq0001i4vse3y0a0bh" data-title="О чем этот блог" class="article-share-link">Поделиться</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/03/hello-world/" class="article-date">
-  <time class="dt-published" datetime="2021-06-03T04:07:58.089Z" itemprop="datePublished">03-06-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/03/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/06/03/hello-world/" data-id="cl11roygc000ii4vscib056l7" data-title="Hello World" class="article-share-link">Поделиться</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Назад</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
+    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Назад</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/5/">Вперед &raquo;</a>
   </nav>
 
 </section>
@@ -779,7 +775,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Метки</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Benchmark/" rel="tag">Benchmark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DateTime/" rel="tag">DateTime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guid/" rel="tag">Guid</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RPM/" rel="tag">RPM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPEC/" rel="tag">SPEC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SelectMany/" rel="tag">SelectMany</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Stopwatch/" rel="tag">Stopwatch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swagger/" rel="tag">Swagger</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bash/" rel="tag">bash</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/switch/" rel="tag">switch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Benchmark/" rel="tag">Benchmark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BenchmarkDotNet/" rel="tag">BenchmarkDotNet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DateTime/" rel="tag">DateTime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultRequestHeaders/" rel="tag">DefaultRequestHeaders</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EPPlus/" rel="tag">EPPlus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EntityFramework/" rel="tag">EntityFramework</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Enum/" rel="tag">Enum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guid/" rel="tag">Guid</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Headers/" rel="tag">Headers</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ILSpy/" rel="tag">ILSpy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSIS/" rel="tag">NSIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NuGet/" rel="tag">NuGet</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OWIN/" rel="tag">OWIN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OrderBy/" rel="tag">OrderBy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RPM/" rel="tag">RPM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SNMP/" rel="tag">SNMP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPEC/" rel="tag">SPEC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SelectMany/" rel="tag">SelectMany</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Stopwatch/" rel="tag">Stopwatch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swagger/" rel="tag">Swagger</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TopShelf/" rel="tag">TopShelf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VSCode/" rel="tag">VSCode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Venis-IX/" rel="tag">Venis_IX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WebAPI/" rel="tag">WebAPI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-service/" rel="tag">Windows-service</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bash/" rel="tag">bash</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/concurrency/" rel="tag">concurrency</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cursor/" rel="tag">cursor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-request/" rel="tag">get-request</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/get-response/" rel="tag">get-response</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/githubpages/" rel="tag">githubpages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/net5-0/" rel="tag">net5.0</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nsis/" rel="tag">nsis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/paging/" rel="tag">paging</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pragmatic-programmer/" rel="tag">pragmatic-programmer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/printer/" rel="tag">printer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/script/" rel="tag">script</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scripting/" rel="tag">scripting</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/server/" rel="tag">server</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/simulator/" rel="tag">simulator</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmp/" rel="tag">snmp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/snmpsim/" rel="tag">snmpsim</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/switch/" rel="tag">switch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-safe/" rel="tag">thread-safe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" rel="tag">Томас</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" rel="tag">Хант</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" rel="tag">блог</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" rel="tag">докер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" rel="tag">принтер</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" rel="tag">программист-прагматик</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" rel="tag">симулятор</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" rel="tag">созданиеблога</a></li></ul>
     </div>
   </div>
 
@@ -789,7 +785,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Облако меток</h3>
     <div class="widget tagcloud">
-      <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 13.33px;">ClearScript</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 13.33px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 13.33px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 16.67px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 13.33px;">Linux</a> <a href="/tags/NSIS/" style="font-size: 16.67px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 13.33px;">RPM</a> <a href="/tags/SNMP/" style="font-size: 16.67px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 13.33px;">Windows-service</a> <a href="/tags/bash/" style="font-size: 13.33px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 16.67px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 13.33px;">printer</a> <a href="/tags/script/" style="font-size: 13.33px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 13.33px;">simulator</a> <a href="/tags/snmp/" style="font-size: 13.33px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 13.33px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 10px;">switch</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 13.33px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 13.33px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 12.5px;">ClearScript</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 12.5px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 12.5px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 17.5px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 12.5px;">Linux</a> <a href="/tags/NSIS/" style="font-size: 15px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/OrderBy/" style="font-size: 10px;">OrderBy</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 12.5px;">RPM</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 12.5px;">Windows-service</a> <a href="/tags/bash/" style="font-size: 12.5px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 15px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 12.5px;">printer</a> <a href="/tags/script/" style="font-size: 12.5px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 12.5px;">simulator</a> <a href="/tags/snmp/" style="font-size: 12.5px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 12.5px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 10px;">switch</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 12.5px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 12.5px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -811,6 +807,14 @@
       <ul>
         
           <li>
+            <a href="/2022/03/31/sorting-tuples/">Сортировка кортежей</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/31/order-by/">LINQ оператор OrderBy</a>
+          </li>
+        
+          <li>
             <a href="/2022/03/22/select-many/">LINQ оператор SelectMany</a>
           </li>
         
@@ -820,14 +824,6 @@
         
           <li>
             <a href="/2022/03/17/switch-by-property-values/">Сопоставление с образцом на основе значений свойств объекта</a>
-          </li>
-        
-          <li>
-            <a href="/2022/02/24/datetime-vs-stopwatch/">DateTime.Now vs. Stopwatch</a>
-          </li>
-        
-          <li>
-            <a href="/2022/02/24/swagger-xml-comments/">Особенность отображения Swagger&#39;ом XML комментариев</a>
           </li>
         
       </ul>
