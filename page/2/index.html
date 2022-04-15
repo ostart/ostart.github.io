@@ -77,6 +77,86 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-processing-tasks-as-they-complete" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/10/processing-tasks-as-they-complete/" class="article-date">
+  <time class="dt-published" datetime="2022-02-10T11:17:30.000Z" itemprop="datePublished">10-02-2022</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/02/10/processing-tasks-as-they-complete/">Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Данный пост является переводом статьи <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/">Stephen Toub “Processing tasks as they complete”</a>.</p>
+<p>Недавно несколько человек спросили меня, как обрабатывать результаты выполнения задач по мере их завершения.</p>
+<p>Допустим у разработчика есть несколько задач, представляющих асинхронные операции которые он инициировал, и он хочет обработать результаты выполнения этих задач, например:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="keyword">var</span> t <span class="keyword">in</span> tasks) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123; Process(<span class="keyword">await</span> t); &#125;</span><br><span class="line">    catch(OperationCanceledException) &#123;&#125;</span><br><span class="line">    catch(Exception exc) &#123; Handle(exc); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Такой подход подходит для многих ситуаций. Однако он накладывает дополнительное ограничение при обработке, которое на самом деле не подразумевалось в исходной постановке задачи: этот код в конечном итоге обрабатывает задачи в той последовательности, в которой они были вызваны, а не в порядке их завершения, что означает, что некоторые задачи, которые уже были завершены, могут быть недоступны для обработки, поскольку предыдущая задача в последовательности может быть еще не завершена.</p>
+<p>Есть много способов реализовать подобное решение. Один из подходов включает простое использование метода ContinueWith у Task, например:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="keyword">var</span> t <span class="keyword">in</span> tasks)</span><br><span class="line">    t.ContinueWith(completed =&gt; &#123;</span><br><span class="line">        <span class="keyword">switch</span>(completed.Status) &#123;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.RanToCompletion: Process(completed.Result); <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.Faulted: Handle(completed.Exception.InnerException); <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, TaskScheduler.Default);</span><br></pre></td></tr></table></figure>
+
+<p>Это решение устраняет дополнительное ограничение, заключавшееся в том, что исходное решение заставляло обработку всех продолжений выполняться последовательно (и в исходном SynchronizationContext, если он был), тогда как данное решение позволяет выполнять обработку параллельно и в ThreadPool. Если вы хотите использовать данный подход, но также заставить задачи выполняться последовательно, можно сделать это, подставив сериализующий планировщик для метода ContinueWith (то есть планировщик, который заставит продолжения выполняться исключительно с оглядкой друг на друга). Например, вы можете использовать ConcurrentExclusiveSchedulerPair:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">var</span> scheduler = <span class="keyword">new</span> ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="keyword">var</span> t <span class="keyword">in</span> tasks)</span><br><span class="line">    t.ContinueWith(completed =&gt; &#123;</span><br><span class="line">        <span class="keyword">switch</span>(completed.Status) &#123;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.RanToCompletion: Process(completed.Result); <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> TaskStatus.Faulted: Handle(completed.Exception.InnerException); <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, scheduler);</span><br></pre></td></tr></table></figure>
+
+<p>или если вы были в потоке пользовательского интерфейса вашего приложения вы могли бы предоставить планировщик, который представляет данный  поток пользовательского интерфейса, например:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> scheduler = TaskScheduler.FromCurrentSynchronizationContext();</span><br></pre></td></tr></table></figure>
+
+<p>Подход, основанный на методе ContinueWith, заставляет вас использовать модель, основанную на обратных вызовах (callbacks), для выполнения вашей обработки результатов. Если вы хотите, чтобы обработка выполнялась последовательно по мере завершения задач, но с использованием async/await, а не с использованием ContinueWith, это также возможно.</p>
+<p>Есть несколько способов добиться этого. Относительно простой способ — использовать Task.WhenAny. WhenAny принимает набор задач и асинхронно предоставляет первую из них, которая завершится. Таким образом, вы можете многократно вызывать WhenAny, каждый раз удаляя ранее выполненную задачу, чтобы асинхронно ожидать завершения следующей:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">while</span>(tasks.Count &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> t = <span class="keyword">await</span> Task.WhenAny(tasks);</span><br><span class="line">    tasks.Remove(t);</span><br><span class="line">    <span class="keyword">try</span> &#123; Process(<span class="keyword">await</span> t); &#125;</span><br><span class="line">    catch(OperationCanceledException) &#123;&#125;</span><br><span class="line">    catch(Exception exc) &#123; Handle(exc); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Функционально это норм, и пока количество задач невелико, производительность тоже должна быть в порядке. Однако, если количество задач становится велико, то это может привести к непренебрежимому снижению производительности. Здесь мы фактически создали алгоритм O(N^2): для каждой задачи мы ищем в списке задачу для ее удаления, что является операцией O(N), и мы регистрируем продолжение для каждой задачи, что тоже является операцией O(N). Например, если бы у нас было 10 000 задач, в течение всей этой операции мы бы в конечном итоге зарегистрировали и отменили регистрацию более 50 миллионов продолжений как части вызовов WhenAny. Правда не всё так плохо как кажется, поскольку WhenAny разумно управляет своими ресурсами, например: не регистрируя продолжения уже завершенных задач; останавливаясь, как только находит завершенную задачу; повторно используя один и тот же объект продолжения для всех задач и т. д. Тем не менее, здесь есть работа, которую мы можем избежать, если профилирование сочтёт этот код проблематичным.</p>
+<p>Альтернативный подход заключается в создании нового метода «комбинатора», специально предназначенного для этой цели. При работе с коллекцией  экземпляров задач типа <code>Task&lt;T&gt;</code> метод WhenAny возвращает <code>Task&lt;Task&lt;T&gt;&gt;</code>; это задача, которая завершится, когда завершится первая из поставленных на выполнение задач, и результатом задачи <code>Task&lt;Task&lt;T&gt;&gt;</code> будет первая завершившаяся задача коллекции. В нашем случае нам нужна не только первая задача, но и все задачи, упорядоченные по мере их завершения. Мы можем представить это с помощью <code>Task&lt;Task&lt;T&gt;&gt;[]</code>. Воспринимайте это как массив корзин, куда мы будем помещать входящие задачи по мере их завершения, по одной задаче на корзину. Таким образом, если вы хотите, чтобы первая задача была завершена, вы можете дождаться (await) первой корзины этого массива, а если вы хотите, чтобы шестая задача была завершена, вы можете дождаться (await) шестой корзины этого массива.</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="title">Task</span>&lt;<span class="title">Task</span>&lt;<span class="title">T</span>&gt;&gt; [] <span class="title">Interleaved</span>&lt;<span class="title">T</span>&gt;(<span class="params">IEnumerable&lt;Task&lt;T&gt;&gt; tasks</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">var</span> inputTasks = tasks.ToList();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> buckets = <span class="keyword">new</span> TaskCompletionSource&lt;Task&lt;T&gt;&gt;[inputTasks.Count];</span><br><span class="line">    <span class="keyword">var</span> results = <span class="keyword">new</span> Task&lt;Task&lt;T&gt;&gt;[buckets.Length];</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; buckets.Length; i++) </span><br><span class="line">    &#123;</span><br><span class="line">        buckets[i] = <span class="keyword">new</span> TaskCompletionSource&lt;Task&lt;T&gt;&gt;();</span><br><span class="line">        results[i] = buckets[i].Task;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">int</span> nextTaskIndex = <span class="number">-1</span>;</span><br><span class="line">    Action&lt;Task&lt;T&gt;&gt; continuation = completed =&gt;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">var</span> bucket = buckets[Interlocked.Increment(<span class="keyword">ref</span> nextTaskIndex)];</span><br><span class="line">        bucket.TrySetResult(completed);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">foreach</span> (<span class="keyword">var</span> inputTask <span class="keyword">in</span> inputTasks)</span><br><span class="line">        inputTask.ContinueWith(continuation, </span><br><span class="line">                               CancellationToken.None,</span><br><span class="line">                               TaskContinuationOptions.ExecuteSynchronously,</span><br><span class="line">                               TaskScheduler.Default);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> results;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Итак, что здесь происходит? Сначала мы преобразуем наше перечисление задач в список <code>List&lt;Task&lt;T&gt;&gt;</code>; это делается для того, чтобы любые задачи, которые могут быть созданы ленивым отложенным способом путем перечисления перечисляемого, были материализованы один раз. Затем мы создаем экземпляры <code>TaskCompletionSource&lt;Task&lt;T&gt;&gt;</code> для представления корзин, по одной корзине на каждую задачу, которая в конечном итоге будет завершена. Затем мы цепляем продолжение к каждой входящей задаче: это продолжение получит следующую доступную корзину и сохранит в ней только что выполненную задачу. С помощью такого комбинатора можно переписать исходный код следующим образом:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&lt;T&gt;&gt; tasks = …;</span><br><span class="line"><span class="keyword">foreach</span>(<span class="function"><span class="keyword">var</span> bucket <span class="keyword">in</span> <span class="title">Interleaved</span>(<span class="params">tasks</span>))</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> t = <span class="keyword">await</span> bucket;</span><br><span class="line">    <span class="keyword">try</span> &#123; Process(<span class="keyword">await</span> t); &#125;</span><br><span class="line">    catch(OperationCanceledException) &#123;&#125;</span><br><span class="line">    catch(Exception exc) &#123; Handle(exc); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Чтобы закрыть данное обсуждение, давайте посмотрим на то, что это даёт на практике. Рассмотрим:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tasks = <span class="keyword">new</span>[] &#123; </span><br><span class="line">    Task.Delay(<span class="number">3000</span>).ContinueWith(_ =&gt; <span class="number">3</span>),</span><br><span class="line">    Task.Delay(<span class="number">1000</span>).ContinueWith(_ =&gt; <span class="number">1</span>), </span><br><span class="line">    Task.Delay(<span class="number">2000</span>).ContinueWith(_ =&gt; <span class="number">2</span>),</span><br><span class="line">    Task.Delay(<span class="number">5000</span>).ContinueWith(_ =&gt; <span class="number">5</span>),</span><br><span class="line">    Task.Delay(<span class="number">4000</span>).ContinueWith(_ =&gt; <span class="number">4</span>),</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">foreach</span> (<span class="function"><span class="keyword">var</span> bucket <span class="keyword">in</span> <span class="title">Interleaved</span>(<span class="params">tasks</span>))</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> t = <span class="keyword">await</span> bucket;</span><br><span class="line">    <span class="built_in">int</span> result = <span class="keyword">await</span> t;</span><br><span class="line">    Console.WriteLine(“&#123;<span class="number">0</span>&#125;: &#123;<span class="number">1</span>&#125;”, DateTime.Now, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>У нас есть массив задач Task<int>, каждая из которых завершится через N секунд и вернет целое число N (например, первая задача в массиве завершится через 3 секунды и вернет число 3). Затем мы перебираем эти задачи, используя наш самодельный метод Interleaved, распечатывая результаты по мере их получения. Когда я запускаю этот код, я вижу следующий вывод:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">48</span> AM: <span class="number">1</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">49</span> AM: <span class="number">2</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">50</span> AM: <span class="number">3</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">51</span> AM: <span class="number">4</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">37</span>:<span class="number">52</span> AM: <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>и это именно то поведение, которое мы хотели. Обратите внимание на время вывода каждого элемента. Все задачи были запущены одновременно, поэтому все их таймеры работают одновременно. По мере того как каждая задача завершается, наш цикл может обработать её, и в результате мы получаем по одной строке вывода каждую секунду.</p>
+<p>Для контраста рассмотрим тот же пример, но без использования Interleaved:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tasks = <span class="keyword">new</span>[] &#123; </span><br><span class="line">    Task.Delay(<span class="number">3000</span>).ContinueWith(_ =&gt; <span class="number">3</span>),</span><br><span class="line">    Task.Delay(<span class="number">1000</span>).ContinueWith(_ =&gt; <span class="number">1</span>), </span><br><span class="line">    Task.Delay(<span class="number">2000</span>).ContinueWith(_ =&gt; <span class="number">2</span>),</span><br><span class="line">    Task.Delay(<span class="number">5000</span>).ContinueWith(_ =&gt; <span class="number">5</span>),</span><br><span class="line">    Task.Delay(<span class="number">4000</span>).ContinueWith(_ =&gt; <span class="number">4</span>),</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">foreach</span> (<span class="keyword">var</span> t <span class="keyword">in</span> tasks) &#123;</span><br><span class="line">    <span class="built_in">int</span> result = <span class="keyword">await</span> t;</span><br><span class="line">    Console.WriteLine(“&#123;<span class="number">0</span>&#125;: &#123;<span class="number">1</span>&#125;”, DateTime.Now, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>При запуске этого варианта видим:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">08</span> AM: <span class="number">3</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">08</span> AM: <span class="number">1</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">08</span> AM: <span class="number">2</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">10</span> AM: <span class="number">5</span></span><br><span class="line"><span class="number">8</span>/<span class="number">2</span>/<span class="number">2012</span> <span class="number">7</span>:<span class="number">42</span>:<span class="number">10</span> AM: <span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<p>А теперь взгляните на время. Поскольку идёт обработка задач по порядку, мы не можем распечатать результаты для задачи 1 или задачи 2 до тех пор, пока задача 3 не будет завершена (поскольку она была перед ними в массиве). Точно так же мы не можем распечатать результат для задачи 4, пока задача 5 не будет завершена.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="cl2067omk0017h8vsb7nj2wrc" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-task-when-any" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/02/10/task-when-any/" class="article-date">
@@ -127,7 +207,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="cl1ewxr440021h0vs8aoy3b0d" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="cl2067on80024h8vsae47d3m0" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
       
       
       
@@ -175,7 +255,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="cl1ewxr43001zh0vs3ny69ma0" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="cl2067on5001zh8vs88dw12pv" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
       
       
       
@@ -238,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="cl1ewxr59006zh0vsdecz00pj" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="cl2067on90029h8vsg40o60nq" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
       
       
       
@@ -288,7 +368,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="cl1ewxr3l000vh0vs8jtt7o98" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="cl2067omf000xh8vsbzs97kxo" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
       
       
       
@@ -340,7 +420,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="cl1ewxr3a000bh0vschfz33qp" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="cl2067om5000ch8vs4me3arwn" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -405,7 +485,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="cl1ewxr2q0002h0vsgb22f0q9" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="cl2067om10005h8vs4w6b83z2" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -465,7 +545,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="cl1ewxr3v001bh0vs4uyj322d" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="cl2067omq001fh8vs4va54wsg" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -545,7 +625,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="cl1ewxr3w001gh0vsbkzn70cy" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="cl2067omo001dh8vsch1jg7cc" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
@@ -590,56 +670,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="cl1ewxr3l000th0vsewqxabea" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="cl2067omf000vh8vs0zw17v2i" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-progressive-delay-pattern" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/11/18/progressive-delay-pattern/" class="article-date">
-  <time class="dt-published" datetime="2021-11-18T06:04:13.000Z" itemprop="datePublished">18-11-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/11/18/progressive-delay-pattern/">Шаблон увеличивающегося интервала повторения запроса</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Когда в приложении прогнозируется присутствие проблем при запросах по сети и не требуется сдаваться в получении ответа при появлении первой же проблемы, я использую шаблон увеличивающегося интервала повторения запроса. Суть шаблона такова: в случае отсутствия ответа (от МФУ например) в отведённый таймаут приложение ожидает определённый интервал времени и затем пытается отправить запрос снова. Если и во второй раз нет ответа, то ожидаем в два раза дольший интервал времени и т.д. (в три, четыре… Вид прогрессии можно выбрать самостоятельно). Получается, что запросы идут всё реже и реже не перегружая устройство (или сайт) в случае сетевых проблем на его стороне. В случае отсутствия ответов заданное число раз, можно полностью прекратить отправку запросов.</p>
-<p>Ниже приводится код условного метода <em>Method</em>. База интервала повторения запроса составляет одну секунду и задана арифметическая прогрессия увеличения интервала. Можно задать геометрическую прогрессию, умножая текущий интервал повторения на 2 каждый раз или даже степенную, возводя базу в степень текущего числа повторений (<code>var currentDelay = Math.Pow(DelayInMilliseconds, tryCounter);</code>). Ожидание реализовано синхронно, а асинхронный вариант ожидания (требующий изменения сигнатуры метода на <em>Task<int> Method()</em>) показан в комментарии.</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">int</span> <span class="title">Method</span>(<span class="params"></span>) <span class="comment">// public static Task&lt;int&gt; Method()</span></span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">int</span> DelayInMilliseconds = <span class="number">1000</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">int</span> RetryCount = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">bool</span> success = <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> tryCounter = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> response;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">do</span></span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">try</span></span><br><span class="line">          &#123;</span><br><span class="line">              response = <span class="comment">// Http запрос к сайту, устройству или т.п.</span></span><br><span class="line">              success = <span class="literal">true</span>;</span><br><span class="line">          &#125; </span><br><span class="line">          catch(HttpRequestException ex) <span class="keyword">when</span> (ex.StatusCode == HttpStatusCode.RequestTimeout)</span><br><span class="line">          &#123;</span><br><span class="line">              tryCounter += <span class="number">1</span>;</span><br><span class="line">              <span class="keyword">var</span> currentDelay = DelayInMilliseconds * tryCounter;</span><br><span class="line">              Thread.Sleep(currentDelay); <span class="comment">// await Task.Delay(currentDelay);</span></span><br><span class="line">          &#125;</span><br><span class="line">      &#125; <span class="keyword">while</span>(tryCounter &lt; RetryCount);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">finally</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> (success)</span><br><span class="line">        <span class="keyword">return</span> response;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> HttpRequestException(<span class="string">&quot;Request failed&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Обратите внимание, на двойное обёртывание блоками try-catch-finally самого сетевого запроса. Именно во внешнем блоке finally формируется возвращаемый методом ответ <code>return response;</code>. Иначе он выкидывает наружу исключение HttpRequestException.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="cl1ewxr3u0019h0vsft8q58kh" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ProgressiveDelayPattern/" rel="tag">ProgressiveDelayPattern</a></li></ul>
 
     </footer>
   </div>
@@ -677,7 +712,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Облако меток</h3>
     <div class="widget tagcloud">
-      <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 12.5px;">ClearScript</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 12.5px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 12.5px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 17.5px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 12.5px;">Linux</a> <a href="/tags/NSIS/" style="font-size: 15px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/OrderBy/" style="font-size: 10px;">OrderBy</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 12.5px;">RPM</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 12.5px;">Windows-service</a> <a href="/tags/bash/" style="font-size: 12.5px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 15px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 12.5px;">printer</a> <a href="/tags/script/" style="font-size: 12.5px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 12.5px;">simulator</a> <a href="/tags/snmp/" style="font-size: 12.5px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 12.5px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 10px;">switch</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 12.5px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 12.5px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 12.5px;">ClearScript</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/EntityFramework/" style="font-size: 10px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 12.5px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 12.5px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 17.5px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 12.5px;">Linux</a> <a href="/tags/NSIS/" style="font-size: 15px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 10px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/OrderBy/" style="font-size: 10px;">OrderBy</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 12.5px;">RPM</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 12.5px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 12.5px;">Windows-service</a> <a href="/tags/bash/" style="font-size: 12.5px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/nsis/" style="font-size: 15px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 12.5px;">printer</a> <a href="/tags/script/" style="font-size: 12.5px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 12.5px;">simulator</a> <a href="/tags/snmp/" style="font-size: 12.5px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 12.5px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 10px;">switch</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 12.5px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 12.5px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -686,7 +721,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Архив</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">март 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">февраль 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">апрель 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">март 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">февраль 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
     </div>
   </div>
 
@@ -697,6 +732,10 @@
     <h3 class="widget-title">Недавние записи</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2022/04/15/to-dictionary-vs-to-lookup/">ToDictionary vs ToLookup</a>
+          </li>
         
           <li>
             <a href="/2022/03/31/sorting-tuples/">Сортировка кортежей</a>
@@ -712,10 +751,6 @@
         
           <li>
             <a href="/2022/03/17/int-to-guid/">Как преобразовать int в Guid заданным способом</a>
-          </li>
-        
-          <li>
-            <a href="/2022/03/17/switch-by-property-values/">Сопоставление с образцом на основе значений свойств объекта</a>
           </li>
         
       </ul>
