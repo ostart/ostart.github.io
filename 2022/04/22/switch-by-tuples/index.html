@@ -4,14 +4,20 @@
   <meta charset="utf-8">
   
   
-  <title>Архив: 2021/10 | Artemio&#39;s Blog</title>
+  <title>Сопоставление с образцом на основе кортежей | Artemio&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Artemio&#39;s Blog">
-<meta property="og:url" content="https://ostart.github.io/archives/2021/10/index.html">
+  <meta name="description" content="Ранее мною уже был рассмотрен один из механизмов сопоставления с образцом (паттерн матчинга) в статье Сопоставление с образцом на основе значений свойств объекта. В данной статье рассмотрим сопоставле">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Сопоставление с образцом на основе кортежей">
+<meta property="og:url" content="https://ostart.github.io/2022/04/22/switch-by-tuples/index.html">
 <meta property="og:site_name" content="Artemio&#39;s Blog">
+<meta property="og:description" content="Ранее мною уже был рассмотрен один из механизмов сопоставления с образцом (паттерн матчинга) в статье Сопоставление с образцом на основе значений свойств объекта. В данной статье рассмотрим сопоставле">
 <meta property="og:locale" content="ru_RU">
+<meta property="article:published_time" content="2022-04-22T15:57:13.000Z">
+<meta property="article:modified_time" content="2022-04-22T16:16:35.806Z">
 <meta property="article:author" content="Artem Ostashchenko">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="switch">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Artemio's Blog" type="application/atom+xml">
@@ -75,58 +81,69 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/10/21/cursor-paging/" class="archive-article-date">
-  <time class="dt-published" datetime="2021-10-21T07:59:07.000Z" itemprop="datePublished">окт. 21</time>
+        <section id="main"><article id="post-switch-by-tuples" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/04/22/switch-by-tuples/" class="article-date">
+  <time class="dt-published" datetime="2022-04-22T15:57:13.000Z" itemprop="datePublished">22-04-2022</time>
 </a>
-      
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/10/21/cursor-paging/">Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      Сопоставление с образцом на основе кортежей
     </h1>
   
 
-    </header>
-  </div>
-</article>
-  
+      </header>
     
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/10/07/owin/" class="archive-article-date">
-  <time class="dt-published" datetime="2021-10-07T11:09:48.000Z" itemprop="datePublished">окт. 7</time>
-</a>
+    <div class="e-content article-entry" itemprop="articleBody">
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/10/07/owin/">Добавляем WebAPI в Windows-службу</a>
-    </h1>
-  
+        <p>Ранее мною уже был рассмотрен один из механизмов сопоставления с образцом (паттерн матчинга) в статье <a href="https://ostart.github.io/2022/03/17/switch-by-property-values/">Сопоставление с образцом на основе значений свойств объекта</a>. В данной статье рассмотрим сопоставление с образцом на основе кортежей, что делает код намного короче.</p>
+<p>Рассмотрим класс комнаты и перечисление статуса члена клуба такого вида:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Room</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> Number &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Type &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Size &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Deconstruct</span>(<span class="params"><span class="keyword">out</span> <span class="built_in">string</span> type, <span class="keyword">out</span> <span class="built_in">string</span> size</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        type = type;</span><br><span class="line">        size = Size;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="built_in">enum</span> Membership</span><br><span class="line">&#123;</span><br><span class="line">    Bronze,</span><br><span class="line">    Silver,</span><br><span class="line">    Gold</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    </header>
+<p>Метод <code>GetRooms</code> возвращает список комнат вида:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;Room&gt; <span class="title">GetRooms</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> List&lt;Room&gt;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">new</span> Room</span><br><span class="line">        &#123;</span><br><span class="line">            Number = <span class="number">3</span>,</span><br><span class="line">            Size = <span class="string">&quot;Large&quot;</span>,</span><br><span class="line">            Type = <span class="string">&quot;Deluxe&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="keyword">new</span> Room</span><br><span class="line">        &#123;</span><br><span class="line">            Number = <span class="number">2</span>,</span><br><span class="line">            Size = <span class="string">&quot;Large&quot;</span>,</span><br><span class="line">            Type = <span class="string">&quot;Regular&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="keyword">new</span> Room</span><br><span class="line">        &#123;</span><br><span class="line">            Number = <span class="number">1</span>,</span><br><span class="line">            Size = <span class="string">&quot;Standard&quot;</span>,</span><br><span class="line">            Type = <span class="string">&quot;Regular&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Начиная с C# 8.0 появилась возможность сопоставлять с образцом в выражении <code>switch</code>, используя деконструктор класса (см. ранее конструкцию <code>Deconstruct</code> в определении класса <code>Room</code>):</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="built_in">int</span> RoomNotAvailable = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">int</span> <span class="title">AssignRoom</span>(<span class="params">Membership membership</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">foreach</span>(<span class="function"><span class="keyword">var</span> room <span class="keyword">in</span> <span class="title">GetRooms</span>(<span class="params"></span>))</span></span><br><span class="line">    &#123;</span><br><span class="line">        Membership clientCategory = room <span class="keyword">switch</span></span><br><span class="line">        &#123;</span><br><span class="line">            (<span class="string">&quot;Deluxe&quot;</span>, <span class="string">&quot;Large&quot;</span>) =&gt; Membership.Gold,</span><br><span class="line">            (<span class="string">&quot;Regular&quot;</span>, <span class="string">&quot;Large&quot;</span>) =&gt; Membership.Silver,</span><br><span class="line">            (<span class="string">&quot;Regular&quot;</span>, <span class="string">&quot;Standard&quot;</span>) =&gt; Membership.Bronze,</span><br><span class="line">            _ =&gt; Membership.Bronze</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (clientCategory == membership)</span><br><span class="line">            <span class="keyword">return</span> room.Number;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> RoomNotAvailable;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Код ветки <code>_ =&gt; Membership.Bronze</code> аналогичен случаю <code>default:</code> в стандартном <code>switch</code>.</p>
+<p>Тогда основной метод программы может использовать вышеприведённый код таким образом:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> voir <span class="title">Main</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    Console.Write(<span class="string">&quot;Choose status: 0 for Bronze, 1 for Silver, 2 for Gold&quot;</span>);</span><br><span class="line">    <span class="built_in">string</span> clientStatus = Console.ReadLine();</span><br><span class="line"></span><br><span class="line">    Enum.TryParse(clientStatus, <span class="keyword">out</span> Membership membership);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">int</span> roomNumber = AssignRoom(membership);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (roomNumber == RoomNotAvailable)</span><br><span class="line">        Console.WriteLine(<span class="string">&quot;Room not available&quot;</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        Console.WriteLine(<span class="string">$&quot;Room number is <span class="subst">&#123;roomNumber&#125;</span>&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Видно на сколько короче стала конструкция <code>switch</code> благодаря использованию кортежей. Компактный синтаксис кортежей делает их идеальным инструментом для сопоставления с образцом (паттерн матчинга). В остальном код и результаты идентичны приведённому в статье <a href="https://ostart.github.io/2022/03/17/switch-by-property-values/">Сопоставление с образцом на основе значений свойств объекта</a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2022/04/22/switch-by-tuples/" data-id="cl2an09lj0021bcvs8ym1b6pj" data-title="Сопоставление с образцом на основе кортежей" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/switch/" rel="tag">switch</a></li></ul>
+
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2022/04/15/to-dictionary-vs-to-lookup/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Предыдущий</strong>
+      <div class="article-nav-title">ToDictionary vs ToLookup</div>
+    </a>
+  
+</nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
 
 
 </section>
