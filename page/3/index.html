@@ -77,6 +77,64 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-idisposable" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/19/idisposable/" class="article-date">
+  <time class="dt-published" datetime="2022-02-19T08:18:09.000Z" itemprop="datePublished">19-02-2022</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/02/19/idisposable/">Имплементация интерфейса IDisposable</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Интерфейс <code>IDisposable</code> служит для освобождения неуправляемых ресурсов (unmanaged resources). Сборщик мусора в .NET автоматически не освобождает неуправляемую память. Поэтому разработан шаблон освобождения неуправляемых ресурсов (Dispose Pattern), таких как файловые дескрипторы, указатели на блоки неуправляемой памяти, дескрипторы реестра и т.п. Для освобождения неуправляемых ресурсов объект должен реализовывать интерфейс <code>IDisposable</code>.</p>
+<p>Интерфейс <code>IDisposable</code> требует имплементации метода без параметров <code>Dispose()</code>, а незапечатанные (non-sealed) классы дополнительно должны перегружать метод <code>Dispose(bool)</code>. Чтобы обеспечить правильное освобождение ресурсов, метод Dispose должен быть идемпотентным (т.е. чтобы его можно было без вреда вызывать несколько раз). Все последующие после первого вызовы Dispose() ничего не должны делать.</p>
+<p>Стандартная реализация публичного невиртуального метода <code>Dispose()</code>:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    Dispose(<span class="literal">true</span>); <span class="comment">// Dispose of unmanaged resources</span></span><br><span class="line">    GC.SuppressFinalize(<span class="keyword">this</span>); <span class="comment">// Suppress finalization</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Перегруженный метод <code>Dispose(bool)</code> выполняет фактическую очистку всех объектов, поэтому сборщику мусора больше не нужно вызывать финализатор (деструктор) объектов. Таким образом, вызов метода SuppressFinalize предотвращает запуск финализатора (деструктора) сборщиком мусора. Если класс не имеет финализатора (деструктора), вызов <code>GC.SuppressFinalize</code> не будет оказывать никакого влияния.</p>
+<p>В перегруженном методе <code>Dispose(bool)</code> аргумент метода указывает исходит ли вызов из метода Dispose (тогда его значение true) или из финализатора (тогда его значение false).</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"><span class="built_in">bool</span> disposing</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (_disposed)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (disposing)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// <span class="doctag">TODO:</span> dispose managed state (managed objects).</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> free unmanaged resources (unmanaged objects) and override a finalizer below.</span></span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> set large fields to null.</span></span><br><span class="line"></span><br><span class="line">    _disposed = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Метод немедленно возвращается, если очиска ресурсов уже имела место до этого. Отмечу, что блок выполняющий очистку неуправляемых ресурсов выполняется при любом значении аргумента disposing у метода. А вот блок освобождающий управляемые ресурсы запустится только в случае аргумента disposing равного true. Управляемые ресурсы могут состоять из объектов, реализующих IDisposable интерфейс (тогда у них просто надо каскадно вызвать Dispose() методы), либо из объектов, потребляющих большие объемы памяти или ограниченные ресурсы (тогда надо назначить ссылкам на них значение null, что освобождает их быстрее, чем если бы они были очищены в произвольный момент).</p>
+<p>Если вызов метода происходит из финализатора (деструктора класса), то должен выполняться только код, освобождающий неуправляемые ресурсы, как показано ниже:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">~A()</span><br><span class="line">&#123;</span><br><span class="line">    Dispose(<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Разработчик отвечает за то, чтобы путь с аргументом false не взаимодействовал с управляемыми объектами, которые уже могли быть удалены. Это важно, потому что порядок в котором сборщик мусора удаляет управляемые объекты во время финализации недетерминирован.</p>
+<p>Отмечу, что следует реализовать финализатор (деструктор) только в том случае, если у вас есть фактические неуправляемые ресурсы для удаления. Одна из основных причин реализовать финализатор (деструктор) состоит в том, что вы не может быть уверены инициализирован ли полностью экземпляр (например, в конструкторе может быть сгенерировано исключение). Однако если базовый класс может ссылаться только на управляемые объекты и реализовывать шаблон удаления, то в таком случае финализатор (деструктор) не нужен. Финализатор (деструктор класса) требуется только в том случае, если вы напрямую ссылаетесь на неуправляемые ресурсы. CLR обрабатывает финализируемые объекты иначе, чем нефинализируемые, даже если вызывается SuppressFinalize.</p>
+<p>Когда класс реализует интерфейс IDisposable, это означает, что где-то есть неуправляемые ресурсы от которых следует избавиться, когда вы закончите использовать объект этого класса. Ресурсы инкапсулированы внутри класса и вам не нужно явно удалять их. Простой вызов <code>Dispose()</code> или обертывание класса в <code>using(...) &#123;&#125;</code> позволит избавиться от любых неуправляемых ресурсов автоматически.</p>
+<p>Таким образом, вот общий шаблон для реализации Dispose Pattern:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">ClassWithFinalizer</span> : <span class="title">IDisposable</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// To detect redundant calls</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">bool</span> _disposedValue;</span><br><span class="line"></span><br><span class="line">    ~ClassWithFinalizer() =&gt; Dispose(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Public implementation of Dispose pattern callable by consumers.</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"></span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        Dispose(<span class="literal">true</span>);</span><br><span class="line">        GC.SuppressFinalize(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Protected implementation of Dispose pattern.</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"><span class="built_in">bool</span> disposing</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!_disposedValue)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (disposing)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// <span class="doctag">TODO:</span> dispose managed state (managed objects)</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> free unmanaged resources (unmanaged objects) and override finalizer</span></span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> set large fields to null</span></span><br><span class="line">            _disposedValue = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2022/02/19/idisposable/" data-id="clkwi8rfh000swwvsdlsf26kj" data-title="Имплементация интерфейса IDisposable" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-processing-tasks-as-they-complete" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/02/10/processing-tasks-as-they-complete/" class="article-date">
@@ -143,7 +201,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="clk7q6l06001c3wvs6l0t9hz3" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/processing-tasks-as-they-complete/" data-id="clkwi8rfq001gwwvsfbbtesz8" data-title="Перевод статьи Стефэна Тоуба &#34;Обработка задач по мере их завершения&#34;" class="article-share-link">Поделиться</a>
       
       
       
@@ -207,7 +265,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="clk7q6l0v002o3wvsbvvqfyiy" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2022/02/10/task-when-any/" data-id="clkwi8rgc002qwwvs5am61kx6" data-title="Параллельная обработка задач по мере их завершения с помощью Task.WhenAny" class="article-share-link">Поделиться</a>
       
       
       
@@ -255,7 +313,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="clk7q6l0u002j3wvsf2do4g2z" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/sync-from-async/" data-id="clkwi8rga002iwwvs1h4fcb2q" data-title="Вызов синхронного кода из асинхронного" class="article-share-link">Поделиться</a>
       
       
       
@@ -318,7 +376,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="clk7q6l0x002t3wvs0dq0h6fh" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/16/valuetask/" data-id="clkwi8rge002xwwvs36un3p2z" data-title="Особенности работы ValueTask" class="article-share-link">Поделиться</a>
       
       
       
@@ -368,7 +426,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="clk7q6l00000y3wvsasjd4ow2" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/let-in-linq-queries/" data-id="clkwi8rfm0012wwvscg3gd86y" data-title="Использование let для упрощения LINQ запросов" class="article-share-link">Поделиться</a>
       
       
       
@@ -420,7 +478,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="clk7q6kzr000f3wvs7kej4oiw" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/distinct-objects/" data-id="clkwi8rf7000dwwvsce18dqun" data-title="Особенности Distinct на коллекциях объектов ссылочной природы" class="article-share-link">Поделиться</a>
       
       
       
@@ -485,7 +543,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="clk7q6kz000003wvscw4f9o86" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/14/building-maintainable-software/" data-id="clkwi8rew0003wwvsfmwu423r" data-title="Разработка обслуживаемых программ на языке С#" class="article-share-link">Поделиться</a>
       
       
       
@@ -545,7 +603,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="clk7q6l0l001u3wvs78e0fsgg" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-spec/" data-id="clkwi8rfy001twwvs8yblgk2b" data-title="SPEC-файл RPM-пакета" class="article-share-link">Поделиться</a>
       
       
       
@@ -625,56 +683,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="clk7q6l0k001t3wvsdvqv7rg2" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="clkwi8rfx001rwwvsf3oqb59d" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RPM/" rel="tag">RPM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/bash/" rel="tag">bash</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-left-join" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/11/18/left-join/" class="article-date">
-  <time class="dt-published" datetime="2021-11-18T07:33:24.000Z" itemprop="datePublished">18-11-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/11/18/left-join/">Выполнение Left Join запросов в LINQ</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Всем хорош подход FluentApi при выполнении запросов в LINQ, но одна вещь ему не по зубам. Это выполнение удобных Left Join запросов. Но SQL-style запросы в LINQ позволяют решить данную проблему.</p>
-<p>Конструкция join в LINQ даёт INNER JOIN соединение таблиц (если проводить аналогию с SQL). А для LEFT JOIN рассмотрим код, показывающий как решить данную проблему в LINQ:</p>
-<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> salesProducts = </span><br><span class="line">(</span><br><span class="line">    <span class="keyword">from</span> product <span class="keyword">in</span> context.Products</span><br><span class="line">    <span class="keyword">join</span> person <span class="keyword">in</span> context.<span class="function">SalesPeople <span class="title">on</span></span></span><br><span class="line"><span class="function">    (<span class="params">product.Region, product.Type</span>)</span></span><br><span class="line"><span class="function">    <span class="title">equals</span></span></span><br><span class="line"><span class="function">    (<span class="params">person.Region, person.ProductType</span>)</span></span><br><span class="line"><span class="function">    <span class="keyword">into</span> productPeople</span></span><br><span class="line"><span class="function">    <span class="keyword">from</span> productPerson <span class="keyword">in</span> productPeople.<span class="title">DefaultIfEmpty</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    <span class="keyword">select</span> <span class="keyword">new</span></span> </span><br><span class="line">    &#123;</span><br><span class="line">        Person = productPerson?.Name ?? <span class="built_in">string</span>.Empty,</span><br><span class="line">        Product = product.Name,</span><br><span class="line">        product.Region,</span><br><span class="line">        product.Type</span><br><span class="line">    &#125;</span><br><span class="line">).ToList();</span><br></pre></td></tr></table></figure>
-
-<p><strong>DefaultIfEmpty()</strong> как раз и осуществляет LEFT JOIN в случае, если <em>productPerson</em> не имеет соответствующей сущности в таблице продаванов <em>SalesPeople</em>. Результат join запроса, соединяющего сущности таблицы <em>Products</em> с сущностями таблицы <em>SalesPeople</em> помещается во временную переменную <em>productPersons</em> с помощью синтаксической конструкции <code>into productPersons</code> и затем оператор <em>DefaultIfEmpty()</em> в конструкции <code>from productPerson in productPersons.DefaultIfEmpty()</code> помещает null в качестве <em>productPerson</em>, если для указаного продукта не имеется соответствующего продавца. Затем мы формируем с помощью проекции <em>select</em> экземпляр анонимного класса, содержащего допустимые значения в случае отсутствия продавца <em>person</em> у требуемого продукта <em>product</em>. Это достигается с помощью конструкции <code>Person = productPerson?.Name ?? string.Empty</code>, которая позволяет избавиться от последующей проверки значения на null.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="clk7q6kzz000w3wvs8omg8077" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LEFTJOIN/" rel="tag">LEFTJOIN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LINQ/" rel="tag">LINQ</a></li></ul>
 
     </footer>
   </div>
@@ -712,7 +725,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Облако меток</h3>
     <div class="widget tagcloud">
-      <a href="/tags/NET5/" style="font-size: 10px;">.NET5</a> <a href="/tags/NET6/" style="font-size: 12.5px;">.NET6</a> <a href="/tags/ASP-NETCore/" style="font-size: 10px;">ASP.NETCore</a> <a href="/tags/Angular/" style="font-size: 10px;">Angular</a> <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 12.5px;">ClearScript</a> <a href="/tags/Commandline/" style="font-size: 10px;">Commandline</a> <a href="/tags/CreateReactApp/" style="font-size: 10px;">CreateReactApp</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EFCore5/" style="font-size: 10px;">EFCore5</a> <a href="/tags/EFCore6/" style="font-size: 10px;">EFCore6</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/ESLint/" style="font-size: 10px;">ESLint</a> <a href="/tags/EntityFramework/" style="font-size: 12.5px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/Husky/" style="font-size: 10px;">Husky</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 12.5px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 12.5px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 17.5px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/MicrosoftSQLServer/" style="font-size: 10px;">MicrosoftSQLServer</a> <a href="/tags/NSIS/" style="font-size: 15px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 12.5px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/OrderBy/" style="font-size: 10px;">OrderBy</a> <a href="/tags/PostgreSQL/" style="font-size: 10px;">PostgreSQL</a> <a href="/tags/Prettier/" style="font-size: 10px;">Prettier</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 12.5px;">RPM</a> <a href="/tags/React/" style="font-size: 10px;">React</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/ToDictionary/" style="font-size: 10px;">ToDictionary</a> <a href="/tags/ToLookup/" style="font-size: 10px;">ToLookup</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/VisualStudio/" style="font-size: 10px;">VisualStudio</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 12.5px;">Windows-service</a> <a href="/tags/aspnetcore/" style="font-size: 10px;">aspnetcore</a> <a href="/tags/bash/" style="font-size: 12.5px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/ngx-translate/" style="font-size: 10px;">ngx-translate</a> <a href="/tags/nsis/" style="font-size: 15px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 12.5px;">printer</a> <a href="/tags/script/" style="font-size: 12.5px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 12.5px;">simulator</a> <a href="/tags/snmp/" style="font-size: 12.5px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 12.5px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 12.5px;">switch</a> <a href="/tags/syslog/" style="font-size: 10px;">syslog</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 12.5px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 12.5px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/NET5/" style="font-size: 10px;">.NET5</a> <a href="/tags/NET6/" style="font-size: 12.5px;">.NET6</a> <a href="/tags/ASP-NETCore/" style="font-size: 10px;">ASP.NETCore</a> <a href="/tags/Angular/" style="font-size: 10px;">Angular</a> <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 12.5px;">ClearScript</a> <a href="/tags/Commandline/" style="font-size: 10px;">Commandline</a> <a href="/tags/CreateReactApp/" style="font-size: 10px;">CreateReactApp</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EFCore5/" style="font-size: 10px;">EFCore5</a> <a href="/tags/EFCore6/" style="font-size: 10px;">EFCore6</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/ESLint/" style="font-size: 10px;">ESLint</a> <a href="/tags/EntityFramework/" style="font-size: 12.5px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/Husky/" style="font-size: 10px;">Husky</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 12.5px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 12.5px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 17.5px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/MicrosoftSQLServer/" style="font-size: 12.5px;">MicrosoftSQLServer</a> <a href="/tags/NSIS/" style="font-size: 15px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 12.5px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/OrderBy/" style="font-size: 10px;">OrderBy</a> <a href="/tags/PostgreSQL/" style="font-size: 12.5px;">PostgreSQL</a> <a href="/tags/Prettier/" style="font-size: 10px;">Prettier</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 12.5px;">RPM</a> <a href="/tags/React/" style="font-size: 10px;">React</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/ToDictionary/" style="font-size: 10px;">ToDictionary</a> <a href="/tags/ToLookup/" style="font-size: 10px;">ToLookup</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/VisualStudio/" style="font-size: 10px;">VisualStudio</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 12.5px;">Windows-service</a> <a href="/tags/aspnetcore/" style="font-size: 10px;">aspnetcore</a> <a href="/tags/bash/" style="font-size: 12.5px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/ngx-translate/" style="font-size: 10px;">ngx-translate</a> <a href="/tags/nsis/" style="font-size: 15px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 12.5px;">printer</a> <a href="/tags/script/" style="font-size: 12.5px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 12.5px;">simulator</a> <a href="/tags/snmp/" style="font-size: 12.5px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 12.5px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 12.5px;">switch</a> <a href="/tags/syslog/" style="font-size: 10px;">syslog</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 12.5px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 12.5px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -721,7 +734,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Архив</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">июль 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">июнь 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">апрель 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">декабрь 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">апрель 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">март 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">февраль 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">август 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">июль 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">июнь 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">апрель 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">декабрь 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">апрель 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">март 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">февраль 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
     </div>
   </div>
 
@@ -732,6 +745,10 @@
     <h3 class="widget-title">Недавние записи</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2023/08/04/insert-node-to-json-by-sql/">Как добавить узел в JSON с помощью SQL запроса</a>
+          </li>
         
           <li>
             <a href="/2023/07/05/system-drawing-common-only-windows-supported/">System.Drawing.Common будет поддерживаться только на Windows</a>
@@ -747,10 +764,6 @@
         
           <li>
             <a href="/2023/04/13/contains-is-deprecated-in-efcore6/">Метод Contains больше не поддерживается в EF Core 6</a>
-          </li>
-        
-          <li>
-            <a href="/2022/12/21/required-query-string-in-aspnet-core/">Обязательный QueryString параметр в ASP.NET Core</a>
           </li>
         
       </ul>
