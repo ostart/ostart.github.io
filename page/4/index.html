@@ -77,6 +77,86 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-rpm-package" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/07/rpm-package/" class="article-date">
+  <time class="dt-published" datetime="2021-12-07T10:15:24.000Z" itemprop="datePublished">07-12-2021</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/07/rpm-package/">RPM-пакет</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Пакет RPM - это просто файл, содержащий другие файлы и информацию о них, необходимую для развёртывания файлов в операционной системе. Для сборки RPM-пакета мною использовалась операционная система <strong>CentOS 7</strong>.</p>
+<p>На систему требуется установить следующие пакеты:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install rpm-build rpm-devel rpmlint rpmdevtools</span><br></pre></td></tr></table></figure>
+
+<p>Основные команды для сборщика RPM-пакетам содержатся в <a href="https://ostart.github.io/2021/12/07/rpm-spec/">SPEC-файле RPM-пакета</a>.</p>
+<p>Для начала работы из домашней директории текущего пользователя выполните команду в терминале:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpmdev-setuptree</span><br></pre></td></tr></table></figure>
+
+<p>В результате выполнения команды в домашней директории текущего пользователя появится папка <strong>rpmbuild</strong> следующей структуры:</p>
+<ul>
+<li>BUILD</li>
+<li>RPMS</li>
+<li>SOURCES</li>
+<li>SPECS</li>
+<li>SRPMS</li>
+</ul>
+<h2 id="Сборка-RPM-пакета"><a href="#Сборка-RPM-пакета" class="headerlink" title="Сборка RPM-пакета"></a>Сборка RPM-пакета</h2><p>Для сборки потребуется:</p>
+<ol>
+<li><a href="https://ostart.github.io/2021/12/07/rpm-spec/">SPEC-файл</a> (в нашем случае LinuxInstaller-2.15.2.4.spec), который нужно расположить в папке SPECS</li>
+<li>Архив tar.gz (в нашем случае LinuxInstaller-2.15.2.4.tar.gz) с бинарниками, и в нашем случае bash-скриптом <em>install</em>, который нужно расположить в папке SOURCES</li>
+</ol>
+<p><strong>Важно, чтобы имя архива (в нашем случае LinuxInstaller-2.15.2.4.tar.gz) и указанные в SPEC-файле параметры Name, Version и Release соответствовали друг другу</strong>!</p>
+<p>Перед сборкой RPM-пакета рекомендуется применить линтер к SPEC-файлу командой в терминале:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpmlint rpmbuild/SPECS/LinuxInstaller-2.15.2.4.spec</span><br></pre></td></tr></table></figure>
+<p>и поправить ошибки и критические замечания обнаруженные линтером в указанном файле.</p>
+<p>Для сборки RPM-пакета из домашней директории текущего пользователя выполните следующую команду в терминале:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpmbuild -bb rpmbuild/SPECS/LinuxInstaller-2.15.2.4.spec</span><br></pre></td></tr></table></figure>
+
+<p>Ключ -bb означает, что RPM-пакет будет собираться из готовых бинарников. Также RPM-пакет можно собрать из исходников. SPEC-файл разворачивает бинарники из папки SOURCES в папку BUILD, копирует их в новую папку BUILDROOT и упаковывает их в RPM-пакет, который появится в папке RPMS (подпапке x86_64) в rpm-файле <strong>LinuxInstaller-2.15.2-4.x86_64.rpm</strong>. При установке rpm-пакет разворачивает содержимое во временную папку /tmp/LinuxInstaller-2.15.2.4/, запускает bash-скрипт <em>install</em> командой <code>/bin/bash /tmp/%&#123;name&#125;-%&#123;version&#125;.%&#123;release&#125;/install</code> и после установки удаляет временную папку. Основная логика развёртывания файлов вынесена в bash-скрипт <em>install</em>, несущественного для рассматриваемого здесь вопроса.</p>
+<h2 id="Развёртывание-RPM-пакета"><a href="#Развёртывание-RPM-пакета" class="headerlink" title="Развёртывание RPM-пакета"></a>Развёртывание RPM-пакета</h2><p>Развернуть RPM-пакет можно как из терминала под root-пользователем, так и из специальной программы в графической оболочке операционной системы.</p>
+<p>Для развёртывания RPM-пакета из терминала выполните под root-пользователем следующую команду:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm -i LinuxPrintClientInstaller-2.15.2-4.x86_64.rpm</span><br></pre></td></tr></table></figure>
+
+<p>Для удаления RPM-пакета из терминала выполните под root-пользователем следующую команду:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm -ev LinuxPrintClientInstaller-2.15.2-4</span><br></pre></td></tr></table></figure>
+
+<p><strong>Обратите внимание, что при удалении <em>x86_64.rpm</em> указывать в конце пакета не надо!</strong></p>
+<h2 id="Обновление-RPM-пакета"><a href="#Обновление-RPM-пакета" class="headerlink" title="Обновление RPM-пакета"></a>Обновление RPM-пакета</h2><p>Обновление пакета требует собрать версию с большими значениями Version и Release. Обратите внимание, что имя и содержимое архива tar.gz также должены соответствовать этим Version и Release.</p>
+<p>Если для обновления использовать GUI операционной системы, то RPM-пакет предыдущей версии будет удалён автоматически в случае успешного развертывания пакета обновления. При установке обновления из командной строки предыдущую версию придётся удалять из операционной системы вручную также из командной строки.</p>
+<p>Хорошая <a target="_blank" rel="noopener" href="https://rpm-packaging-guide.github.io/">Инструкция по RPM-пакетам</a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://ostart.github.io/2021/12/07/rpm-package/" data-id="cls34x48y001ny0vsh7t624jc" data-title="RPM-пакет" class="article-share-link">Поделиться</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RPM/" rel="tag">RPM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/bash/" rel="tag">bash</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-left-join" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/11/18/left-join/" class="article-date">
@@ -108,7 +188,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="clkwi8rfl0010wwvs1wc85lrl" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/left-join/" data-id="cls34x48p000wy0vs55gt38sm" data-title="Выполнение Left Join запросов в LINQ" class="article-share-link">Поделиться</a>
       
       
       
@@ -153,7 +233,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="clkwi8rft001lwwvsh7li7rwa" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/11/18/progressive-delay-pattern/" data-id="cls34x48v001ey0vs2dx69k9o" data-title="Шаблон увеличивающегося интервала повторения запроса" class="article-share-link">Поделиться</a>
       
       
       
@@ -240,7 +320,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="clkwi8rf5000awwvscwii6nsf" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/21/cursor-paging/" data-id="cls34x48g000ay0vseqfsdd0n" data-title="Пагинация с помощью курсора в Entity Framework Core и ASP.NET Core" class="article-share-link">Поделиться</a>
       
       
       
@@ -295,7 +375,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="clkwi8rfp001cwwvs0ty796dx" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/10/07/owin/" data-id="cls34x48w001hy0vsgwapaygo" data-title="Добавляем WebAPI в Windows-службу" class="article-share-link">Поделиться</a>
       
       
       
@@ -356,7 +436,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="clkwi8rgd002uwwvsf7z0frf1" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/30/topshelf/" data-id="cls34x49i002qy0vs61migv0b" data-title="Разрабатываем Windows-службы с помощью TopShelf" class="article-share-link">Поделиться</a>
       
       
       
@@ -413,7 +493,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="clkwi8rf9000gwwvsaqezf6tf" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/18/enum-is-defined-csharp/" data-id="cls34x48l000jy0vs6qf536gg" data-title="Enum.IsDefined и его самодельная альтернатива" class="article-share-link">Поделиться</a>
       
       
       
@@ -462,7 +542,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="clkwi8reh0000wwvsb3ikbnew" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/17/add-csharp-nuget-package-vscode/" data-id="cls34x4810000y0vsf1fehvuh" data-title="Добавляем из терминала VSCode NuGet пакеты в C# проект" class="article-share-link">Поделиться</a>
       
       
       
@@ -514,7 +594,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="clkwi8rfb000iwwvs1w0z2tbx" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/09/epplus-named-style/" data-id="cls34x48n000oy0vshb4fenp2" data-title="Как эффективно выделять ячейки в файлах Excel с помощью EPPlus" class="article-share-link">Поделиться</a>
       
       
       
@@ -565,58 +645,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="clkwi8rf00004wwvs9w1x6iay" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Поделиться</a>
+      <a data-url="https://ostart.github.io/2021/09/09/calendar-53-weeks/" data-id="cls34x48d0005y0vs79bbglio" data-title="Почему в календаре бывает 53 недели" class="article-share-link">Поделиться</a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Calendar/" rel="tag">Calendar</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GetWeekOfYear/" rel="tag">GetWeekOfYear</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ISOWeek/" rel="tag">ISOWeek</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-js-bytes-to-float" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/09/07/js-bytes-to-float/" class="article-date">
-  <time class="dt-published" datetime="2021-09-07T15:08:00.000Z" itemprop="datePublished">07-09-2021</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/09/07/js-bytes-to-float/">Преобразование массива байтов во float в JavaScript</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Если вам требует в JavaScript преобразовать массив из 4-х байтов в число с плавающей точкой единичной точности (float), то можно воспользоваться следующей функцией:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bytesToFloat</span>(<span class="params">bytes</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> buffer = <span class="keyword">new</span> <span class="built_in">ArrayBuffer</span>(<span class="number">4</span>);</span><br><span class="line">    <span class="keyword">const</span> view = <span class="keyword">new</span> <span class="built_in">DataView</span>(buffer, <span class="number">0</span> , <span class="number">4</span>); <span class="comment">// для ClearScript нужен конструктор со всеми параметрами</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; bytes.length; i += <span class="number">1</span>) &#123;</span><br><span class="line">        view.setUint8(i, bytes[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> view.getFloat32(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Обращу внимание на конструкцию вида:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> view = <span class="keyword">new</span> <span class="built_in">DataView</span>(buffer, <span class="number">0</span> , <span class="number">4</span>);</span><br></pre></td></tr></table></figure>
-
-<p>В теории, при инициализации объекта класса DataView через конструктор должен создаваться <em>view</em> того же размера, что и <em>buffer</em>. Но на практике применения конструктора DataView в ClearScript (см. <a href="https://ostart.github.io/2021/09/07/clearscript/">предыдущий пост с объяснениями что такое ClearScript</a>) выяснилось, что требуется использовать перегрузку конструктора DataView с указанием всех параметров, иначе ClearScript порождает ошибку выполнения с сообщением о том, что view создаётся меньшего размера, чем требуется для buffer.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://ostart.github.io/2021/09/07/js-bytes-to-float/" data-id="clkwi8rfk000ywwvs39dnekd5" data-title="Преобразование массива байтов во float в JavaScript" class="article-share-link">Поделиться</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ClearScript/" rel="tag">ClearScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li></ul>
 
     </footer>
   </div>
@@ -654,7 +687,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Облако меток</h3>
     <div class="widget tagcloud">
-      <a href="/tags/NET5/" style="font-size: 10px;">.NET5</a> <a href="/tags/NET6/" style="font-size: 12.5px;">.NET6</a> <a href="/tags/ASP-NETCore/" style="font-size: 10px;">ASP.NETCore</a> <a href="/tags/Angular/" style="font-size: 10px;">Angular</a> <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 12.5px;">ClearScript</a> <a href="/tags/Commandline/" style="font-size: 10px;">Commandline</a> <a href="/tags/CreateReactApp/" style="font-size: 10px;">CreateReactApp</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EFCore5/" style="font-size: 10px;">EFCore5</a> <a href="/tags/EFCore6/" style="font-size: 10px;">EFCore6</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/ESLint/" style="font-size: 10px;">ESLint</a> <a href="/tags/EntityFramework/" style="font-size: 12.5px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/Husky/" style="font-size: 10px;">Husky</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 12.5px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 12.5px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 17.5px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/MicrosoftSQLServer/" style="font-size: 12.5px;">MicrosoftSQLServer</a> <a href="/tags/NSIS/" style="font-size: 15px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 12.5px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/OrderBy/" style="font-size: 10px;">OrderBy</a> <a href="/tags/PostgreSQL/" style="font-size: 12.5px;">PostgreSQL</a> <a href="/tags/Prettier/" style="font-size: 10px;">Prettier</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 12.5px;">RPM</a> <a href="/tags/React/" style="font-size: 10px;">React</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/ToDictionary/" style="font-size: 10px;">ToDictionary</a> <a href="/tags/ToLookup/" style="font-size: 10px;">ToLookup</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/VisualStudio/" style="font-size: 10px;">VisualStudio</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 12.5px;">Windows-service</a> <a href="/tags/aspnetcore/" style="font-size: 10px;">aspnetcore</a> <a href="/tags/bash/" style="font-size: 12.5px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/ngx-translate/" style="font-size: 10px;">ngx-translate</a> <a href="/tags/nsis/" style="font-size: 15px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 12.5px;">printer</a> <a href="/tags/script/" style="font-size: 12.5px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 12.5px;">simulator</a> <a href="/tags/snmp/" style="font-size: 12.5px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 12.5px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 12.5px;">switch</a> <a href="/tags/syslog/" style="font-size: 10px;">syslog</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 12.5px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 12.5px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
+      <a href="/tags/NET5/" style="font-size: 10px;">.NET5</a> <a href="/tags/NET6/" style="font-size: 12.5px;">.NET6</a> <a href="/tags/ASP-NETCore/" style="font-size: 10px;">ASP.NETCore</a> <a href="/tags/Angular/" style="font-size: 10px;">Angular</a> <a href="/tags/Benchmark/" style="font-size: 10px;">Benchmark</a> <a href="/tags/BenchmarkDotNet/" style="font-size: 10px;">BenchmarkDotNet</a> <a href="/tags/C/" style="font-size: 20px;">C#</a> <a href="/tags/Calendar/" style="font-size: 10px;">Calendar</a> <a href="/tags/ClearScript/" style="font-size: 12.5px;">ClearScript</a> <a href="/tags/Commandline/" style="font-size: 10px;">Commandline</a> <a href="/tags/CreateReactApp/" style="font-size: 10px;">CreateReactApp</a> <a href="/tags/DateTime/" style="font-size: 10px;">DateTime</a> <a href="/tags/DefaultRequestHeaders/" style="font-size: 10px;">DefaultRequestHeaders</a> <a href="/tags/EFCore5/" style="font-size: 10px;">EFCore5</a> <a href="/tags/EFCore6/" style="font-size: 10px;">EFCore6</a> <a href="/tags/EPPlus/" style="font-size: 10px;">EPPlus</a> <a href="/tags/ESLint/" style="font-size: 10px;">ESLint</a> <a href="/tags/EntityFramework/" style="font-size: 12.5px;">EntityFramework</a> <a href="/tags/Enum/" style="font-size: 10px;">Enum</a> <a href="/tags/Excel/" style="font-size: 10px;">Excel</a> <a href="/tags/GetWeekOfYear/" style="font-size: 10px;">GetWeekOfYear</a> <a href="/tags/Guid/" style="font-size: 10px;">Guid</a> <a href="/tags/Headers/" style="font-size: 10px;">Headers</a> <a href="/tags/HttpClient/" style="font-size: 10px;">HttpClient</a> <a href="/tags/Husky/" style="font-size: 10px;">Husky</a> <a href="/tags/ILSpy/" style="font-size: 10px;">ILSpy</a> <a href="/tags/ISOWeek/" style="font-size: 10px;">ISOWeek</a> <a href="/tags/JS/" style="font-size: 12.5px;">JS</a> <a href="/tags/JavaScript/" style="font-size: 12.5px;">JavaScript</a> <a href="/tags/LEFTJOIN/" style="font-size: 10px;">LEFTJOIN</a> <a href="/tags/LINQ/" style="font-size: 17.5px;">LINQ</a> <a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/MicrosoftSQLServer/" style="font-size: 15px;">MicrosoftSQLServer</a> <a href="/tags/NSIS/" style="font-size: 15px;">NSIS</a> <a href="/tags/NuGet/" style="font-size: 12.5px;">NuGet</a> <a href="/tags/OWIN/" style="font-size: 10px;">OWIN</a> <a href="/tags/OrderBy/" style="font-size: 10px;">OrderBy</a> <a href="/tags/PostgreSQL/" style="font-size: 15px;">PostgreSQL</a> <a href="/tags/Prettier/" style="font-size: 10px;">Prettier</a> <a href="/tags/ProgressiveDelayPattern/" style="font-size: 10px;">ProgressiveDelayPattern</a> <a href="/tags/RPM/" style="font-size: 12.5px;">RPM</a> <a href="/tags/React/" style="font-size: 10px;">React</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/SPEC/" style="font-size: 10px;">SPEC</a> <a href="/tags/SelectMany/" style="font-size: 10px;">SelectMany</a> <a href="/tags/Stopwatch/" style="font-size: 10px;">Stopwatch</a> <a href="/tags/Swagger/" style="font-size: 10px;">Swagger</a> <a href="/tags/ToDictionary/" style="font-size: 10px;">ToDictionary</a> <a href="/tags/ToLookup/" style="font-size: 10px;">ToLookup</a> <a href="/tags/TopShelf/" style="font-size: 10px;">TopShelf</a> <a href="/tags/VSCode/" style="font-size: 10px;">VSCode</a> <a href="/tags/Venis-IX/" style="font-size: 10px;">Venis_IX</a> <a href="/tags/VisualStudio/" style="font-size: 10px;">VisualStudio</a> <a href="/tags/WebAPI/" style="font-size: 10px;">WebAPI</a> <a href="/tags/Windows-service/" style="font-size: 12.5px;">Windows-service</a> <a href="/tags/aspnetcore/" style="font-size: 10px;">aspnetcore</a> <a href="/tags/bash/" style="font-size: 12.5px;">bash</a> <a href="/tags/concurrency/" style="font-size: 10px;">concurrency</a> <a href="/tags/cursor/" style="font-size: 10px;">cursor</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/get-request/" style="font-size: 10px;">get-request</a> <a href="/tags/get-response/" style="font-size: 10px;">get-response</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/githubpages/" style="font-size: 10px;">githubpages</a> <a href="/tags/net5-0/" style="font-size: 10px;">net5.0</a> <a href="/tags/ngx-translate/" style="font-size: 10px;">ngx-translate</a> <a href="/tags/nsis/" style="font-size: 15px;">nsis</a> <a href="/tags/paging/" style="font-size: 10px;">paging</a> <a href="/tags/pragmatic-programmer/" style="font-size: 10px;">pragmatic-programmer</a> <a href="/tags/printer/" style="font-size: 12.5px;">printer</a> <a href="/tags/script/" style="font-size: 12.5px;">script</a> <a href="/tags/scripting/" style="font-size: 10px;">scripting</a> <a href="/tags/server/" style="font-size: 10px;">server</a> <a href="/tags/simulator/" style="font-size: 12.5px;">simulator</a> <a href="/tags/snmp/" style="font-size: 12.5px;">snmp</a> <a href="/tags/snmpsim/" style="font-size: 12.5px;">snmpsim</a> <a href="/tags/switch/" style="font-size: 12.5px;">switch</a> <a href="/tags/syslog/" style="font-size: 10px;">syslog</a> <a href="/tags/thread-safe/" style="font-size: 10px;">thread-safe</a> <a href="/tags/%D0%A2%D0%BE%D0%BC%D0%B0%D1%81/" style="font-size: 10px;">Томас</a> <a href="/tags/%D0%A5%D0%B0%D0%BD%D1%82/" style="font-size: 10px;">Хант</a> <a href="/tags/%D0%B1%D0%BB%D0%BE%D0%B3/" style="font-size: 10px;">блог</a> <a href="/tags/%D0%B4%D0%BE%D0%BA%D0%B5%D1%80/" style="font-size: 10px;">докер</a> <a href="/tags/%D0%BF%D1%80%D0%B8%D0%BD%D1%82%D0%B5%D1%80/" style="font-size: 12.5px;">принтер</a> <a href="/tags/%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82-%D0%BF%D1%80%D0%B0%D0%B3%D0%BC%D0%B0%D1%82%D0%B8%D0%BA/" style="font-size: 10px;">программист-прагматик</a> <a href="/tags/%D1%81%D0%B8%D0%BC%D1%83%D0%BB%D1%8F%D1%82%D0%BE%D1%80/" style="font-size: 12.5px;">симулятор</a> <a href="/tags/%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%D0%B1%D0%BB%D0%BE%D0%B3%D0%B0/" style="font-size: 10px;">созданиеблога</a>
     </div>
   </div>
 
@@ -663,7 +696,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Архив</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">август 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">июль 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">июнь 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">апрель 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">декабрь 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">апрель 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">март 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">февраль 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">февраль 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">август 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">июль 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">июнь 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">апрель 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/12/">декабрь 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">апрель 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">март 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">февраль 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">декабрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">ноябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">октябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">сентябрь 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">август 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">июль 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">июнь 2021</a></li></ul>
     </div>
   </div>
 
@@ -674,6 +707,10 @@
     <h3 class="widget-title">Недавние записи</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/02/01/update-json-node-in-sql/">Как изменить значение в JSON прочитав значение из другого узла с помощью SQL запроса</a>
+          </li>
         
           <li>
             <a href="/2023/08/04/insert-node-to-json-by-sql/">Как добавить узел в JSON с помощью SQL запроса</a>
@@ -691,10 +728,6 @@
             <a href="/2023/06/25/select-problem-ngx-translate-angular/">Об одной проблеме работы ngx-translate при первоначальной загрузке сайта на Angular</a>
           </li>
         
-          <li>
-            <a href="/2023/04/13/contains-is-deprecated-in-efcore6/">Метод Contains больше не поддерживается в EF Core 6</a>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -708,7 +741,7 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       
-      &copy; 2023 Artem Ostashchenko<br>
+      &copy; 2024 Artem Ostashchenko<br>
       Создано с помощью <a href="https://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
